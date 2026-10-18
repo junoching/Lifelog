@@ -491,8 +491,11 @@
   }
   function closeSwipes(except){document.querySelectorAll('.swipe.open').forEach(function(s){if(s!==except)setSwipeOpen(s,false);});}
   document.addEventListener('pointerdown',function(e){
-    var c=e.target.closest?e.target.closest('.swipe-content'):null;
-    closeSwipes(c?c.parentElement:null);
+    var t=e.target;
+    var c=t.closest?t.closest('.swipe-content'):null;
+    var act=t.closest?t.closest('.swipe-actions'):null;
+    if(!act)closeSwipes(c?c.parentElement:null);
+    if(act)return; // 撳緊編輯／刪除掣：唔好閂 swipe，等個掣食到個 click
     if(!c||(e.pointerType==='mouse'&&e.button!==0))return;
     sw={el:c,wrap:c.parentElement,id:e.pointerId,x0:e.clientX,y0:e.clientY,open:c.parentElement.classList.contains('open'),moved:false,nx:0};
   });
