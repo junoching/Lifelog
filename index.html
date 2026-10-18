@@ -146,6 +146,16 @@
     border-radius:16px; padding:9px 16px; background:var(--inverse); color:var(--inverse-ink);
     font-size:13px; font-weight:600; transition:.18s ease; }
   .toast.show { opacity:1; transform:translate(-50%,0); }
+  /* ---- 過場動畫 ---- */
+  @keyframes rowIn { from { opacity:0; transform:translateY(-10px); } }
+  .row-enter { animation:rowIn .28s var(--ease-out); }
+  @keyframes rowOut { to { opacity:0; transform:translateX(-48px); } }
+  .row-exit { animation:rowOut .2s ease-in forwards; }
+  @keyframes dayIn { from { opacity:0; transform:translateY(12px); } }
+  .day-swap .block { animation:dayIn .25s var(--ease-out); }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation:none !important; transition:none !important; }
+  }
   .note { margin:26px 2px 0; color:var(--muted); font-size:12px; line-height:1.6; }
 </style>
 </head>
@@ -266,6 +276,7 @@
      資料以絕對日期儲存，跨日重開會自動換算；昨日或之前未做嘅待辦會自動跌入「未完成」池。 */
   var LS_KEY='lifelog-v1';
   var tasks=[], overdue=[], expenses=[];
+  var enterTaskIdx=-1, enterExpIdx=-1; // 啱啱加入／完成嘅列，render 時播進入動畫
   function loadState(){
     var raw=null;
     try{raw=localStorage.getItem(LS_KEY);}catch(e){}
@@ -332,13 +343,13 @@
     });
     $('taskCount').textContent=list.length?('尚有 '+list.length+' 項'):'已全部完成';
     var html=list.map(function(o){
-      return '<div class="swipe"><div class="row swipe-content" data-task="'+o.i+'"><button class="check" aria-label="完成"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="m5 12 4 4L19 6"/></svg></button><div class="label">'+(o.x.time?'<span class="appt-time">'+esc(o.x.time)+'</span>':'')+esc(o.x.t)+'</div></div><span class="swipe-actions" inert><button class="swipe-act edit" data-edit-task="'+o.i+'">編輯</button><button class="swipe-act del" data-del-task="'+o.i+'">刪除</button></span></div>';
+      return '<div class="swipe"><div class="row swipe-content'+(o.i===enterTaskIdx?' row-enter':'')+'" data-task="'+o.i+'"><button class="check" aria-label="完成"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="m5 12 4 4L19 6"/></svg></button><div class="label">'+(o.x.time?'<span class="appt-time">'+esc(o.x.time)+'</span>':'')+esc(o.x.t)+'</div></div><span class="swipe-actions" inert><button class="swipe-act edit" data-edit-task="'+o.i+'">編輯</button><button class="swipe-act del" data-del-task="'+o.i+'">刪除</button></span></div>';
     }).join('');
     if(!all.length)html='<div style="padding:16px 0;color:var(--muted)">本日尚無待辦事項。</div>';
     if(done.length){
       html+='<div class="group-label">已完成（'+done.length+'）</div>';
       html+=done.map(function(o){
-        return '<div class="swipe"><div class="row done swipe-content" data-task="'+o.i+'" data-done="1"><button class="check" aria-label="重新開啟"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="m5 12 4 4L19 6"/></svg></button><div class="label">'+(o.x.time?'<span class="appt-time">'+esc(o.x.time)+'</span>':'')+esc(o.x.t)+'</div></div><span class="swipe-actions" inert><button class="swipe-act edit" data-edit-task="'+o.i+'">編輯</button><button class="swipe-act del" data-del-task="'+o.i+'">刪除</button></span></div>';
+        return '<div class="swipe"><div class="row done swipe-content'+(o.i===enterTaskIdx?' row-enter':'')+'" data-task="'+o.i+'" data-done="1"><button class="check" aria-label="重新開啟"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="m5 12 4 4L19 6"/></svg></button><div class="label">'+(o.x.time?'<span class="appt-time">'+esc(o.x.time)+'</span>':'')+esc(o.x.t)+'</div></div><span class="swipe-actions" inert><button class="swipe-act edit" data-edit-task="'+o.i+'">編輯</button><button class="swipe-act del" data-del-task="'+o.i+'">刪除</button></span></div>';
       }).join('');
     }
     $('taskList').innerHTML=html;
@@ -355,17 +366,35 @@
   function renderExpenses(){
     var list=expenses.map(function(x,i){return {x:x,i:i};}).filter(function(o){return o.x.off===selOffset;});
     var total=list.reduce(function(s,o){return s+o.x.amt;},0);
-    $('spendTotal').textContent='$'+(total%1?total.toFixed(1):total);
+    countUp($('spendTotal'),total);
     $('expenseList').innerHTML=list.slice().reverse().map(function(o){var x=o.x;
-      return '<div class="swipe"><div class="exp-row swipe-content"><div>'+esc(x.t)+(x.link?'<span class="linked">↳ '+esc(x.link)+'</span>':'')+'<small>'+esc(x.cat||'其他')+'</small></div><div class="amt">$'+x.amt+'</div></div><span class="swipe-actions" inert><button class="swipe-act edit" data-edit-exp="'+o.i+'">編輯</button><button class="swipe-act del" data-del-exp="'+o.i+'">刪除</button></span></div>';
+      return '<div class="swipe"><div class="exp-row swipe-content'+(o.i===enterExpIdx?' row-enter':'')+'"><div>'+esc(x.t)+(x.link?'<span class="linked">↳ '+esc(x.link)+'</span>':'')+'<small>'+esc(x.cat||'其他')+'</small></div><div class="amt">$'+x.amt+'</div></div><span class="swipe-actions" inert><button class="swipe-act edit" data-edit-exp="'+o.i+'">編輯</button><button class="swipe-act del" data-del-exp="'+o.i+'">刪除</button></span></div>';
     }).join('')||'<div style="padding:16px 0;color:var(--muted)">本日尚無支出記錄。</div>';
   }
-  function renderAll(){renderWeek();renderTasks();renderOverdue();renderExpenses();saveState();}
+  function fmtAmt(v){return '$'+(v%1?v.toFixed(1):Math.round(v));}
+  function countUp(el,to){
+    var from=parseFloat(el.dataset.v||'0');
+    el.dataset.v=to;
+    if(from===to||!window.requestAnimationFrame){el.textContent=fmtAmt(to);return;}
+    var t0=null,dur=450;
+    function step(ts){
+      if(t0===null)t0=ts;
+      var p=Math.min(1,(ts-t0)/dur),e=1-Math.pow(1-p,3);
+      el.textContent=fmtAmt(from+(to-from)*e);
+      if(p<1)requestAnimationFrame(step);else el.textContent=fmtAmt(to);
+    }
+    requestAnimationFrame(step);
+  }
+  function daySwap(){
+    var w=document.querySelector('.wrap');
+    w.classList.remove('day-swap');void w.offsetWidth;w.classList.add('day-swap');
+  }
+  function renderAll(){renderWeek();renderTasks();renderOverdue();renderExpenses();saveState();enterTaskIdx=-1;enterExpIdx=-1;}
 
   $('weekStrip').addEventListener('click',function(e){
     var c=e.target.closest('[data-off]');if(!c)return;
     selOffset=+c.dataset.off;$('taskComposer').style.display='none';$('expComposer').style.display='none';
-    renderAll();window.scrollTo({top:0,behavior:'smooth'});
+    renderAll();daySwap();window.scrollTo({top:0,behavior:'smooth'});
   });
 
   $('weekPrev').addEventListener('click',function(){stripBase.setDate(stripBase.getDate()-7);renderWeek();});
@@ -373,7 +402,7 @@
   $('weekToday').addEventListener('click',function(){
     selOffset=0;stripBase=mondayOf(today);
     $('taskComposer').style.display='none';$('expComposer').style.display='none';
-    renderAll();window.scrollTo({top:0,behavior:'smooth'});
+    renderAll();daySwap();window.scrollTo({top:0,behavior:'smooth'});
   });
 
   var viewY, viewM;
@@ -397,7 +426,7 @@
     selOffset=+b.dataset.moff;$('monthSheet').classList.remove('open');
     stripBase=mondayOf(dateOf(selOffset));
     $('taskComposer').style.display='none';$('expComposer').style.display='none';
-    renderAll();window.scrollTo({top:0,behavior:'smooth'});
+    renderAll();daySwap();window.scrollTo({top:0,behavior:'smooth'});
   });
   $('monthSheet').addEventListener('click',function(e){if(e.target===this)this.classList.remove('open');});
 
@@ -495,11 +524,16 @@
   $('taskList').addEventListener('click',function(e){
     var sc=e.target.closest('.swipe-content');if(sc&&sc.dataset.swiped)return;
     var del=e.target.closest('[data-del-task]');
-    if(del){tasks.splice(+del.dataset.delTask,1);renderAll();toast('已刪除待辦');return;}
+    if(del){
+      var di=+del.dataset.delTask,swEl=del.closest('.swipe');
+      if(swEl)swEl.classList.add('row-exit');
+      setTimeout(function(){tasks.splice(di,1);renderAll();toast('已刪除待辦');},200);
+      return;
+    }
     var ed=e.target.closest('[data-edit-task]');
     if(ed){openEdit('task',+ed.dataset.editTask);return;}
     var row=e.target.closest('[data-task]');if(!row)return;
-    if(row.dataset.done){tasks[+row.dataset.task].done=false;renderAll();toast('已重新開啟');return;}
+    if(row.dataset.done){var ri=+row.dataset.task;tasks[ri].done=false;enterTaskIdx=ri;renderAll();toast('已重新開啟');return;}
     pendingLink=+row.dataset.task;
     $('linkTitle').textContent='「'+tasks[pendingLink].t+'」已完成';
     $('linkAmt').value='';
@@ -520,6 +554,7 @@
       if(amt>0){expenses.push({t:t.t,amt:amt,link:'完成時記錄',cat:chip?chip.textContent:'其他',off:0});toast('已完成，並記錄支出 $'+amt);}
       else toast('已完成');
     } else toast('已完成');
+    enterTaskIdx=pendingLink;
     pendingLink=null;$('linkSheet').classList.remove('open');
     renderAll();
   }
@@ -530,13 +565,23 @@
   $('overdueList').addEventListener('click',function(e){
     var sc=e.target.closest('.swipe-content');if(sc&&sc.dataset.swiped)return;
     var del=e.target.closest('[data-del-over]');
-    if(del){overdue.splice(+del.dataset.delOver,1);renderAll();toast('已刪除');return;}
+    if(del){
+      var di2=+del.dataset.delOver,swEl2=del.closest('.swipe');
+      if(swEl2)swEl2.classList.add('row-exit');
+      setTimeout(function(){overdue.splice(di2,1);renderAll();toast('已刪除');},200);
+      return;
+    }
     var ed=e.target.closest('[data-edit-over]');
     if(ed){openEdit('over',+ed.dataset.editOver);return;}
     var b=e.target.closest('[data-defer]');if(!b)return;
-    var x=overdue.splice(+b.dataset.defer,1)[0];
-    tasks.push({t:x.t,done:false,off:0});
-    renderAll();toast('已移至今日待辦');
+    var df=+b.dataset.defer,swEl3=b.closest('.swipe');
+    var doDefer=function(){
+      var x=overdue.splice(df,1)[0];
+      tasks.push({t:x.t,done:false,off:0,time:null});
+      enterTaskIdx=tasks.length-1;
+      renderAll();toast('已移至今日待辦');
+    };
+    if(swEl3){swEl3.classList.add('row-exit');setTimeout(doDefer,200);}else{doDefer();}
   });
 
   function toggleComposer(which){
@@ -548,13 +593,19 @@
   $('qaSpend').addEventListener('click',function(){toggleComposer('spend');});
   $('expenseList').addEventListener('click',function(e){
     var sc=e.target.closest('.swipe-content');if(sc&&sc.dataset.swiped)return;
-    var del=e.target.closest('[data-del-exp]');if(!del&&!e.target.closest('[data-edit-exp]'))return;
-    if(del){expenses.splice(+del.dataset.delExp,1);renderAll();toast('已刪除支出');return;}
+    var del=e.target.closest('[data-del-exp]');
+    if(del){
+      var di3=+del.dataset.delExp,swEl4=del.closest('.swipe');
+      if(swEl4)swEl4.classList.add('row-exit');
+      setTimeout(function(){expenses.splice(di3,1);renderAll();toast('已刪除支出');},200);
+      return;
+    }
     var ed=e.target.closest('[data-edit-exp]');if(ed){openEdit('exp',+ed.dataset.editExp);return;}
   });
   function addTask(){var v=$('taskInput').value.trim();if(!v)return;
     var useTime=$('taskComposer').classList.contains('show-time');
     tasks.push({t:v,done:false,off:selOffset,time:useTime?($('taskTime').value||null):null});
+    enterTaskIdx=tasks.length-1;
     $('taskInput').value='';renderAll();toast('已加入待辦');}
   $('taskAdd').addEventListener('click',addTask);
   $('taskInput').addEventListener('keydown',function(e){if(e.key==='Enter')addTask();});
@@ -563,7 +614,7 @@
   });
   function fmtTime(v){var p=String(v||'').split(':'),h=+p[0],m=p[1]||'00';if(isNaN(h))return '';var ap=h>=12?'PM':'AM';h=h%12||12;return h+':'+m+' '+ap;}
   $('taskTime').addEventListener('change',function(){$('timeLabel').textContent=fmtTime(this.value)||'--:--';});
-  function addExpense(){var t=$('expTitle').value.trim(),a=parseFloat($('expAmt').value);if(!t||!(a>0)){toast('請輸入項目及金額');return;}var chip=$('expChips').querySelector('.on');expenses.push({t:t,amt:a,cat:chip?chip.textContent:'其他',off:selOffset});$('expTitle').value='';$('expAmt').value='';renderAll();toast('已記錄支出 $'+a);}
+  function addExpense(){var t=$('expTitle').value.trim(),a=parseFloat($('expAmt').value);if(!t||!(a>0)){toast('請輸入項目及金額');return;}var chip=$('expChips').querySelector('.on');expenses.push({t:t,amt:a,cat:chip?chip.textContent:'其他',off:selOffset});enterExpIdx=expenses.length-1;$('expTitle').value='';$('expAmt').value='';renderAll();toast('已記錄支出 $'+a);}
   $('expChips').addEventListener('click',function(e){
     var b=e.target.closest('button');if(!b)return;
     Array.prototype.forEach.call(this.children,function(c){c.classList.remove('on');});
