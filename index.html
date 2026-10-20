@@ -725,7 +725,8 @@
     Array.prototype.forEach.call($('themeSeg').children,function(b){b.classList.toggle('on',b.dataset.tm===t);});
     var dark=t==='dark'||(t==='system'&&window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches);
     var m=document.querySelector('meta[name="theme-color"]');
-    if(m)m.setAttribute('content',dark?'#101010':'#efefec');
+    if(m){var nm=document.createElement('meta');nm.setAttribute('name','theme-color');nm.setAttribute('content',dark?'#101010':'#efefec');m.parentNode.replaceChild(nm,m);}
+    setTimeout(function(){var y=window.scrollY;window.scrollTo(0,y+1);window.scrollTo(0,y);},80);
   }
   Array.prototype.forEach.call($('themeSeg').children,function(b){
     b.addEventListener('click',function(){
