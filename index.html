@@ -58,6 +58,8 @@
   .cat-add button { padding:0 20px; border-radius:12px; background:var(--inverse); color:var(--inverse-ink); font-weight:700; font-size:15px; }
   .set-btn { width:100%; padding:14px; border-radius:12px; background:var(--inverse); color:var(--inverse-ink); font-size:15px; font-weight:700; }
   .set-note { font-size:12px; color:var(--muted); margin:8px 2px 0; line-height:1.6; }
+  .cat-toggle { text-align:left; padding:10px 4px; font-size:14px; color:var(--muted); }
+  .cat-toggle b { color:var(--ink); font-weight:700; }
   .week { display:grid; grid-template-columns:repeat(7,minmax(0,1fr)); gap:4px; margin:6px 0 4px; }
   .weeknav { display:flex; align-items:center; justify-content:space-between; margin:14px 2px 0; }
   .weeknav button { min-height:32px; border-radius:16px; padding:0 14px; color:var(--muted);
@@ -233,7 +235,8 @@
       <input id="expTitle" placeholder="例如：午餐" style="flex:2">
       <input id="expAmt" placeholder="金額" inputmode="decimal" style="flex:1">
       <button class="add-btn" id="expAdd">+</button>
-      <div class="chips" id="expChips" style="flex:1 1 100%;margin:2px 0 0">
+      <button class="cat-toggle" id="expCatToggle" style="flex:1 1 100%">分類：<b id="expCatLabel">其他</b> ▾</button>
+      <div class="chips" id="expChips" style="flex:1 1 100%;margin:2px 0 0;display:none">
         <button>餐飲</button><button>交通</button><button>購物</button><button class="on">其他</button>
       </div>
     </div>
@@ -695,11 +698,16 @@
   });
   function fmtTime(v){var p=String(v||'').split(':'),h=+p[0],m=p[1]||'00';if(isNaN(h))return '';var ap=h>=12?'PM':'AM';h=h%12||12;return h+':'+m+' '+ap;}
   $('taskTime').addEventListener('change',function(){$('timeLabel').textContent=fmtTime(this.value)||'--:--';});
-  function addExpense(){var t=$('expTitle').value.trim(),a=parseFloat($('expAmt').value);if(!t||!(a>0)){toast('請輸入項目及金額');return;}var chip=$('expChips').querySelector('.on');expenses.push({t:t,amt:a,cat:chip?chip.textContent:'其他',off:selOffset});enterExpIdx=expenses.length-1;$('expTitle').value='';$('expAmt').value='';renderAll();toast('已記錄支出 $'+a);}
+  function addExpense(){var t=$('expTitle').value.trim(),a=parseFloat($('expAmt').value);if(!t||!(a>0)){toast('請輸入項目及金額');return;}var chip=$('expChips').querySelector('.on');expenses.push({t:t,amt:a,cat:chip?chip.textContent:'其他',off:selOffset});enterExpIdx=expenses.length-1;$('expTitle').value='';$('expAmt').value='';$('expChips').style.display='none';renderAll();toast('已記錄支出 $'+a);}
   $('expChips').addEventListener('click',function(e){
     var b=e.target.closest('button');if(!b)return;
     Array.prototype.forEach.call(this.children,function(c){c.classList.remove('on');});
     b.classList.add('on');
+    $('expCatLabel').textContent=b.textContent;
+    $('expChips').style.display='none';
+  });
+  $('expCatToggle').addEventListener('click',function(){
+    var c=$('expChips');c.style.display=(c.style.display==='none'?'flex':'none');
   });
   $('expAdd').addEventListener('click',addExpense);
   $('expAmt').addEventListener('keydown',function(e){if(e.key==='Enter')addExpense();});
@@ -713,11 +721,11 @@
     if(t==='system')r.removeAttribute('data-theme');else r.setAttribute('data-theme',t);
     Array.prototype.forEach.call($('themeSeg').children,function(b){b.classList.toggle('on',b.dataset.tm===t);});
   }
-  $('themeSeg').addEventListener('click',function(e){
-    var b=e.target.closest?e.target.closest('button'):null;
-    if(!b||!b.dataset.tm)return;
-    try{localStorage.setItem(THEME_KEY,b.dataset.tm);}catch(x){}
-    applyTheme();
+  Array.prototype.forEach.call($('themeSeg').children,function(b){
+    b.addEventListener('click',function(){
+      try{localStorage.setItem(THEME_KEY,b.dataset.tm);}catch(x){}
+      applyTheme();
+    });
   });
   function getCats(){
     var c=null;try{c=JSON.parse(localStorage.getItem(CATS_KEY));}catch(e){}
@@ -732,12 +740,22 @@
       var box=$(id),cur=(box.querySelector('.on')||{}).textContent||null;
       box.innerHTML=cats.map(function(c){return '<button'+(c===cur||(!cur&&c==='其他')?' class="on"':'')+'>'+esc(c)+'</button>';}).join('');
     });
+    var sel=$('expChips').querySelector('.on');
+    if(sel)$('expCatLabel').textContent=sel.textContent;
   }
   function renderCatList(){
     var cats=getCats();
     $('catList').innerHTML=cats.map(function(c,i){
       return '<div class="cat-row">'+esc(c)+'<button data-catdel="'+i+'">刪除</button></div>';
     }).join('');
+    Array.prototype.forEach.call($('catList').querySelectorAll('[data-catdel]'),function(b){
+      b.addEventListener('click',function(){
+        var cs=getCats();
+        if(cs.length<=1){toast('至少保留一個分類');return;}
+        cs.splice(+b.dataset.catdel,1);saveCats(cs);
+        renderCatChips();renderCatList();
+      });
+    });
   }
   $('catAdd').addEventListener('click',function(){
     var v=$('catInput').value.trim();
@@ -745,14 +763,6 @@
     var cats=getCats();
     if(cats.indexOf(v)>-1){toast('已經有呢個分類');return;}
     cats.push(v);saveCats(cats);$('catInput').value='';
-    renderCatChips();renderCatList();
-  });
-  $('catList').addEventListener('click',function(e){
-    var b=e.target.closest?e.target.closest('[data-catdel]'):null;
-    if(!b)return;
-    var cats=getCats(),i=+b.dataset.catdel;
-    if(cats.length<=1){toast('至少保留一個分類');return;}
-    cats.splice(i,1);saveCats(cats);
     renderCatChips();renderCatList();
   });
   $('exportBtn').addEventListener('click',function(){
