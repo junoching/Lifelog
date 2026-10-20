@@ -28,6 +28,20 @@
     padding:max(22px,env(safe-area-inset-top)) 14px calc(30px + env(safe-area-inset-bottom)); }
   .day-head h1 { margin:0; font-size:clamp(30px,6vw,40px); font-weight:800; letter-spacing:-.03em; line-height:1.05; }
   .day-head p { margin:6px 0 0; color:var(--muted); font-size:clamp(13px,2vw,15px); }
+  .day-head { display:flex; justify-content:space-between; align-items:flex-start; }
+  .menu-btn { font-size:20px; padding:10px 13px; color:var(--ink); background:var(--panel);
+    border-radius:12px; box-shadow:0 1px 3px rgba(0,0,0,.08); }
+  .nav-row { display:flex; align-items:center; width:100%; padding:16px 4px;
+    font-size:17px; font-weight:650; color:var(--ink); text-align:left; }
+  .nav-row + .nav-row { border-top:1px solid var(--line); }
+  .nav-row .chev { margin-left:auto; color:var(--muted); font-size:15px; }
+  .page-overlay { position:fixed; inset:0; z-index:60; background:var(--bg); display:none;
+    padding:max(22px,env(safe-area-inset-top)) 14px calc(30px + env(safe-area-inset-bottom)); }
+  .page-overlay.open { display:block; }
+  .page-head { display:flex; align-items:center; gap:12px; margin-bottom:18px; }
+  .page-head button { font-size:26px; font-weight:700; color:var(--ink); padding:4px 10px; }
+  .page-head h2 { margin:0; font-size:24px; font-weight:800; letter-spacing:-.02em; }
+  .page-empty { color:var(--muted); font-size:14px; margin:8px 2px; }
   .week { display:grid; grid-template-columns:repeat(7,minmax(0,1fr)); gap:4px; margin:6px 0 4px; }
   .weeknav { display:flex; align-items:center; justify-content:space-between; margin:14px 2px 0; }
   .weeknav button { min-height:32px; border-radius:16px; padding:0 14px; color:var(--muted);
@@ -162,8 +176,11 @@
 <body>
 <div class="wrap">
   <header class="day-head">
-    <h1 id="dayTitle">今日</h1>
-    <p id="dateLine">10月16日 · 星期五</p>
+    <div>
+      <h1 id="dayTitle">今日</h1>
+      <p id="dateLine">10月16日 · 星期五</p>
+    </div>
+    <button id="menuBtn" class="menu-btn" aria-label="選單">☰</button>
   </header>
 
   <div class="weeknav">
@@ -235,6 +252,21 @@
     </div>
     <div class="mcal-grid" id="mcalGrid"></div>
   </div>
+</div>
+
+<div class="sheet-backdrop" id="navSheet">
+  <div class="sheet">
+    <button class="nav-row" id="navToday">今日<span class="chev">›</span></button>
+    <button class="nav-row" id="navSettings">設定<span class="chev">›</span></button>
+  </div>
+</div>
+
+<div class="page-overlay" id="settingsPage">
+  <div class="page-head">
+    <button id="settingsBack" aria-label="返回">‹</button>
+    <h2>設定</h2>
+  </div>
+  <p class="page-empty">設定項目稍後加入。</p>
 </div>
 
 <div class="sheet-backdrop" id="editSheet">
@@ -431,6 +463,11 @@
     renderComposerDate();
   });
   $('monthSheet').addEventListener('click',function(e){if(e.target===this)this.classList.remove('open');});
+  $('menuBtn').addEventListener('click',function(){$('navSheet').classList.add('open');});
+  $('navSheet').addEventListener('click',function(e){if(e.target===this)this.classList.remove('open');});
+  $('navToday').addEventListener('click',function(){$('navSheet').classList.remove('open');window.scrollTo({top:0,behavior:'smooth'});});
+  $('navSettings').addEventListener('click',function(){$('navSheet').classList.remove('open');$('settingsPage').classList.add('open');});
+  $('settingsBack').addEventListener('click',function(){$('settingsPage').classList.remove('open');});
 
   var editTarget=null;
   function pad2(n){return String(n).padStart(2,'0');}
