@@ -331,7 +331,7 @@
     $('dateLine').textContent=fmt(sd)+' · '+WDFULL[(sd.getDay()+6)%7];
     $('taskHead').textContent=(selOffset===0?'今日':fmt(sd))+'待辦';
     $('spendHead').textContent=(selOffset===0?'今日':fmt(sd))+'支出';
-    $('taskDateBtn').textContent=selOffset===0?'今日':fmt(sd);
+    renderComposerDate();
   }
   function renderTasks(){
     var all=tasks.map(function(x,i){return {x:x,i:i};}).filter(function(o){return o.x.off===selOffset;});
@@ -406,7 +406,11 @@
   });
 
   var viewY, viewM;
-  function openMonth(){var d=dateOf(selOffset);viewY=d.getFullYear();viewM=d.getMonth();renderMonth();$('monthSheet').classList.add('open');}
+  // 新增列目標日期（同而家睇緊嗰日分開）：揀日期只記低，唔即時跳頁；撳「＋」嗰下先跳過去
+  var composerOff=null;
+  function pickTarget(){return ($('taskComposer').style.display!=='none'&&composerOff!==null)?composerOff:selOffset;}
+  function renderComposerDate(){var off=pickTarget();$('taskDateBtn').textContent=off===0?'今日':fmt(dateOf(off));}
+  function openMonth(){var d=dateOf(pickTarget());viewY=d.getFullYear();viewM=d.getMonth();renderMonth();$('monthSheet').classList.add('open');}
   function renderMonth(){
     $('mcalLabel').textContent=viewY+'年'+(viewM+1)+'月';
     var first=new Date(viewY,viewM,1), startIdx=(first.getDay()+6)%7, days=new Date(viewY,viewM+1,0).getDate();
@@ -414,7 +418,7 @@
     for(var i=0;i<startIdx;i++)html+='<span></span>';
     for(var d=1;d<=days;d++){
       var off=Math.round((new Date(viewY,viewM,d)-today)/86400000);
-      html+='<button data-moff="'+off+'" class="'+(off===0?'is-today ':'')+(off===selOffset?'selected':'')+'">'+d+'</button>';
+      html+='<button data-moff="'+off+'" class="'+(off===0?'is-today ':'')+(off===pickTarget()?'selected':'')+'">'+d+'</button>';
     }
     $('mcalGrid').innerHTML=html;
   }
@@ -423,10 +427,8 @@
   $('mcalNext').addEventListener('click',function(){viewM++;if(viewM>11){viewM=0;viewY++;}renderMonth();});
   $('mcalGrid').addEventListener('click',function(e){
     var b=e.target.closest('[data-moff]');if(!b)return;
-    selOffset=+b.dataset.moff;$('monthSheet').classList.remove('open');
-    stripBase=mondayOf(dateOf(selOffset));
-    $('taskComposer').style.display='none';$('expComposer').style.display='none';
-    renderAll();daySwap();window.scrollTo({top:0,behavior:'smooth'});
+    composerOff=+b.dataset.moff;$('monthSheet').classList.remove('open');
+    renderComposerDate();
   });
   $('monthSheet').addEventListener('click',function(e){if(e.target===this)this.classList.remove('open');});
 
@@ -589,7 +591,7 @@
 
   function toggleComposer(which){
     var tc=$('taskComposer'),ec=$('expComposer');
-    if(which==='task'){var open=tc.style.display==='none';tc.style.display=open?'flex':'none';ec.style.display='none';if(open)$('taskInput').focus();}
+    if(which==='task'){var open=tc.style.display==='none';tc.style.display=open?'flex':'none';ec.style.display='none';if(open){composerOff=selOffset;renderComposerDate();$('taskInput').focus();}}
     else{var open2=ec.style.display==='none';ec.style.display=open2?'flex':'none';tc.style.display='none';if(open2)$('expTitle').focus();}
   }
   $('qaTask').addEventListener('click',function(){toggleComposer('task');});
@@ -607,9 +609,13 @@
   });
   function addTask(){var v=$('taskInput').value.trim();if(!v)return;
     var useTime=$('taskComposer').classList.contains('show-time');
-    tasks.push({t:v,done:false,off:selOffset,time:useTime?($('taskTime').value||null):null});
+    var off=composerOff===null?selOffset:composerOff;
+    tasks.push({t:v,done:false,off:off,time:useTime?($('taskTime').value||null):null});
     enterTaskIdx=tasks.length-1;
-    $('taskInput').value='';renderAll();toast('已加入待辦');}
+    $('taskInput').value='';composerOff=null;
+    var jumped=false;
+    if(off!==selOffset){selOffset=off;stripBase=mondayOf(dateOf(selOffset));jumped=true;}
+    renderAll();if(jumped){daySwap();window.scrollTo({top:0,behavior:'smooth'});}toast('已加入待辦');}
   $('taskAdd').addEventListener('click',addTask);
   $('taskInput').addEventListener('keydown',function(e){if(e.key==='Enter')addTask();});
   $('taskTimeToggle').addEventListener('click',function(){
