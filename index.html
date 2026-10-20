@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#efefec">
 <title>LifeLog 今日頁 Mockup</title>
 <style>
   :root {
@@ -22,6 +23,7 @@
   :root[data-theme="light"] { color-scheme:light; --bg:#efefec; --panel:#fff; --field:#e4e4df;
     --ink:#0d0d0d; --muted:#62625e; --line:#d3d3cc; --inverse:#0d0d0d; --inverse-ink:#fff; }
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html { background:var(--bg); }
   body { margin:0; background:var(--bg); color:var(--ink);
     font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","PingFang HK","Microsoft JhengHei","Helvetica Neue",sans-serif;
     -webkit-font-smoothing:antialiased; }
@@ -721,6 +723,9 @@
     var t=getTheme(),r=document.documentElement;
     if(t==='system')r.removeAttribute('data-theme');else r.setAttribute('data-theme',t);
     Array.prototype.forEach.call($('themeSeg').children,function(b){b.classList.toggle('on',b.dataset.tm===t);});
+    var dark=t==='dark'||(t==='system'&&window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches);
+    var m=document.querySelector('meta[name="theme-color"]');
+    if(m)m.setAttribute('content',dark?'#101010':'#efefec');
   }
   Array.prototype.forEach.call($('themeSeg').children,function(b){
     b.addEventListener('click',function(){
@@ -728,6 +733,7 @@
       applyTheme();
     });
   });
+  if(window.matchMedia){try{window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change',function(){applyTheme();});}catch(e){}}
   function getCats(){
     var c=null;try{c=JSON.parse(localStorage.getItem(CATS_KEY));}catch(e){}
     if(!Array.isArray(c))return DEFAULT_CATS.slice();
