@@ -306,7 +306,9 @@
   <div class="set-section">
     <div class="set-label">資料</div>
     <button class="set-btn" id="exportBtn">匯出備份</button>
-    <p class="set-note">匯出所有待辦同支出做 JSON 檔案，保存在手機。還原功能稍後加入。</p>
+    <button class="set-btn" id="importBtn" style="margin-top:10px;background:var(--panel);color:var(--ink);border:1px solid var(--line)">匯入備份</button>
+    <input type="file" id="importFile" accept=".json,application/json" style="display:none">
+    <p class="set-note">匯出所有待辦同支出做 JSON 檔案，保存在手機。匯入會以備份覆蓋現有資料。</p>
   </div>
 </div>
 
@@ -785,6 +787,30 @@
     document.body.appendChild(a);a.click();
     setTimeout(function(){URL.revokeObjectURL(a.href);a.remove();},4000);
     toast('已匯出備份');
+  });
+  $('importBtn').addEventListener('click',function(){$('importFile').click();});
+  $('importFile').addEventListener('change',function(){
+    var f=this.files&&this.files[0];
+    this.value='';
+    if(!f)return;
+    var rd=new FileReader();
+    rd.onload=function(){
+      var p=null;
+      try{p=JSON.parse(rd.result);}catch(e){}
+      var data=p&&(p.data||(Array.isArray(p.tasks)?p:null));
+      if(!data||!Array.isArray(data.tasks)||!Array.isArray(data.expenses)){toast('備份檔案格式不正確');return;}
+      if(!confirm('匯入會覆蓋現有所有待辦同支出，確定還原？'))return;
+      try{
+        localStorage.setItem(LS_KEY,JSON.stringify({tasks:data.tasks,overdue:Array.isArray(data.overdue)?data.overdue:[],expenses:data.expenses}));
+        if(p.theme==='light'||p.theme==='dark'||p.theme==='system')localStorage.setItem(THEME_KEY,p.theme);
+        if(Array.isArray(p.cats)&&p.cats.length)localStorage.setItem(CATS_KEY,JSON.stringify(p.cats));
+      }catch(e){toast('還原失敗');return;}
+      selOffset=0;stripBase=mondayOf(today);
+      loadState();applyTheme();renderCatChips();renderCatList();renderAll();
+      $('settingsPage').classList.remove('open');
+      toast('已還原備份');
+    };
+    rd.readAsText(f);
   });
 
   applyTheme();renderCatChips();renderCatList();
