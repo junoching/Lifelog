@@ -17,6 +17,9 @@
     :root { --bg:#101010; --panel:#1d1d1d; --field:#2a2a2a; --ink:#f7f7f5;
       --muted:#aaa9a3; --line:#383838; --inverse:#fff; --inverse-ink:#111; }
   }
+  :root[data-theme="dark"] { color-scheme:dark; --bg:#101010; --panel:#1d1d1d; --field:#2a2a2a;
+    --ink:#f7f7f5; --muted:#aaa9a3; --line:#383838; --inverse:#fff; --inverse-ink:#111; }
+  :root[data-theme="light"] { color-scheme:light; }
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   body { margin:0; background:var(--bg); color:var(--ink);
     font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","PingFang HK","Microsoft JhengHei","Helvetica Neue",sans-serif;
@@ -43,6 +46,18 @@
   .page-head button { font-size:26px; font-weight:700; color:var(--ink); padding:4px 10px; }
   .page-head h2 { margin:0; font-size:24px; font-weight:800; letter-spacing:-.02em; }
   .page-empty { color:var(--muted); font-size:14px; margin:8px 2px; }
+  .set-section { margin:0 0 26px; }
+  .set-label { font-size:13px; color:var(--muted); margin:0 0 10px; font-weight:600; }
+  .seg { display:flex; background:var(--field); border-radius:12px; padding:3px; gap:3px; }
+  .seg button { flex:1; padding:10px 0; border-radius:9px; font-size:14px; font-weight:600; color:var(--muted); }
+  .seg button.on { background:var(--panel); color:var(--ink); box-shadow:0 1px 3px rgba(0,0,0,.12); }
+  .cat-row { display:flex; align-items:center; padding:12px 4px; font-size:16px; font-weight:600; border-bottom:1px solid var(--line); }
+  .cat-row button { margin-left:auto; color:#d33; font-size:14px; font-weight:600; padding:6px 10px; }
+  .cat-add { display:flex; gap:8px; margin-top:10px; }
+  .cat-add input { flex:1; border:0; border-radius:12px; background:var(--field); color:var(--ink); padding:12px 14px; font-size:15px; }
+  .cat-add button { padding:0 20px; border-radius:12px; background:var(--inverse); color:var(--inverse-ink); font-weight:700; font-size:15px; }
+  .set-btn { width:100%; padding:14px; border-radius:12px; background:var(--inverse); color:var(--inverse-ink); font-size:15px; font-weight:700; }
+  .set-note { font-size:12px; color:var(--muted); margin:8px 2px 0; line-height:1.6; }
   .week { display:grid; grid-template-columns:repeat(7,minmax(0,1fr)); gap:4px; margin:6px 0 4px; }
   .weeknav { display:flex; align-items:center; justify-content:space-between; margin:14px 2px 0; }
   .weeknav button { min-height:32px; border-radius:16px; padding:0 14px; color:var(--muted);
@@ -266,7 +281,27 @@
     <button id="settingsBack" aria-label="返回">‹</button>
     <h2>設定</h2>
   </div>
-  <p class="page-empty">設定項目稍後加入。</p>
+  <div class="set-section">
+    <div class="set-label">外觀</div>
+    <div class="seg" id="themeSeg">
+      <button data-tm="system">跟隨系統</button>
+      <button data-tm="light">淺色</button>
+      <button data-tm="dark">深色</button>
+    </div>
+  </div>
+  <div class="set-section">
+    <div class="set-label">支出分類</div>
+    <div id="catList"></div>
+    <div class="cat-add">
+      <input id="catInput" placeholder="新增分類…" maxlength="12">
+      <button id="catAdd">新增</button>
+    </div>
+  </div>
+  <div class="set-section">
+    <div class="set-label">資料</div>
+    <button class="set-btn" id="exportBtn">匯出備份</button>
+    <p class="set-note">匯出所有待辦同支出做 JSON 檔案，保存在手機。還原功能稍後加入。</p>
+  </div>
 </div>
 
 <div class="sheet-backdrop" id="editSheet">
@@ -668,6 +703,73 @@
   });
   $('expAdd').addEventListener('click',addExpense);
   $('expAmt').addEventListener('keydown',function(e){if(e.key==='Enter')addExpense();});
+
+  /* ---- 設定：外觀／分類／匯出 ---- */
+  var THEME_KEY='lifelog-theme', CATS_KEY='lifelog-cats';
+  var DEFAULT_CATS=['餐飲','交通','購物','其他'];
+  function getTheme(){var t=null;try{t=localStorage.getItem(THEME_KEY);}catch(e){}return (t==='light'||t==='dark')?t:'system';}
+  function applyTheme(){
+    var t=getTheme(),r=document.documentElement;
+    if(t==='system')r.removeAttribute('data-theme');else r.setAttribute('data-theme',t);
+    Array.prototype.forEach.call($('themeSeg').children,function(b){b.classList.toggle('on',b.dataset.tm===t);});
+  }
+  $('themeSeg').addEventListener('click',function(e){
+    var b=e.target.closest?e.target.closest('button'):null;
+    if(!b||!b.dataset.tm)return;
+    try{localStorage.setItem(THEME_KEY,b.dataset.tm);}catch(x){}
+    applyTheme();
+  });
+  function getCats(){
+    var c=null;try{c=JSON.parse(localStorage.getItem(CATS_KEY));}catch(e){}
+    if(!Array.isArray(c))return DEFAULT_CATS.slice();
+    c=c.filter(function(x){return typeof x==='string'&&x.trim();}).map(function(x){return x.trim();});
+    return c.length?c:DEFAULT_CATS.slice();
+  }
+  function saveCats(cats){try{localStorage.setItem(CATS_KEY,JSON.stringify(cats));}catch(e){}}
+  function renderCatChips(){
+    var cats=getCats();
+    ['expChips','linkChips','editChips'].forEach(function(id){
+      var box=$(id),cur=(box.querySelector('.on')||{}).textContent||null;
+      box.innerHTML=cats.map(function(c){return '<button'+(c===cur||(!cur&&c==='其他')?' class="on"':'')+'>'+esc(c)+'</button>';}).join('');
+    });
+  }
+  function renderCatList(){
+    var cats=getCats();
+    $('catList').innerHTML=cats.map(function(c,i){
+      return '<div class="cat-row">'+esc(c)+'<button data-catdel="'+i+'">刪除</button></div>';
+    }).join('');
+  }
+  $('catAdd').addEventListener('click',function(){
+    var v=$('catInput').value.trim();
+    if(!v){toast('請輸入分類名稱');return;}
+    var cats=getCats();
+    if(cats.indexOf(v)>-1){toast('已經有呢個分類');return;}
+    cats.push(v);saveCats(cats);$('catInput').value='';
+    renderCatChips();renderCatList();
+  });
+  $('catList').addEventListener('click',function(e){
+    var b=e.target.closest?e.target.closest('[data-catdel]'):null;
+    if(!b)return;
+    var cats=getCats(),i=+b.dataset.catdel;
+    if(cats.length<=1){toast('至少保留一個分類');return;}
+    cats.splice(i,1);saveCats(cats);
+    renderCatChips();renderCatList();
+  });
+  $('exportBtn').addEventListener('click',function(){
+    var raw=null;try{raw=localStorage.getItem(LS_KEY);}catch(e){}
+    var parsed=null;try{parsed=raw?JSON.parse(raw):null;}catch(x){}
+    var d=new Date(),p=function(n){return (n<10?'0':'')+n;};
+    var payload={app:'lifelog',version:1,exportedAt:d.toISOString(),data:parsed,theme:getTheme(),cats:getCats()};
+    var blob=new Blob([JSON.stringify(payload)],{type:'application/json'});
+    var a=document.createElement('a');
+    a.href=URL.createObjectURL(blob);
+    a.download='lifelog-backup-'+d.getFullYear()+p(d.getMonth()+1)+p(d.getDate())+'.json';
+    document.body.appendChild(a);a.click();
+    setTimeout(function(){URL.revokeObjectURL(a.href);a.remove();},4000);
+    toast('已匯出備份');
+  });
+
+  applyTheme();renderCatChips();renderCatList();
 
   renderAll();
 })();
