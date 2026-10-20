@@ -28,9 +28,10 @@
     padding:max(22px,env(safe-area-inset-top)) 14px calc(30px + env(safe-area-inset-bottom)); }
   .day-head h1 { margin:0; font-size:clamp(30px,6vw,40px); font-weight:800; letter-spacing:-.03em; line-height:1.05; }
   .day-head p { margin:6px 0 0; color:var(--muted); font-size:clamp(13px,2vw,15px); }
-  .day-head { display:flex; justify-content:space-between; align-items:flex-start; }
-  .menu-btn { font-size:20px; padding:10px 13px; color:var(--ink); background:var(--panel);
-    border-radius:12px; box-shadow:0 1px 3px rgba(0,0,0,.08); }
+  .menu-fab { position:fixed; right:16px; bottom:calc(20px + env(safe-area-inset-bottom));
+    z-index:40; width:52px; height:52px; border-radius:26px; font-size:20px; line-height:1;
+    background:var(--panel); color:var(--ink); box-shadow:0 4px 14px rgba(0,0,0,.18);
+    display:flex; align-items:center; justify-content:center; }
   .nav-row { display:flex; align-items:center; width:100%; padding:16px 4px;
     font-size:17px; font-weight:650; color:var(--ink); text-align:left; }
   .nav-row + .nav-row { border-top:1px solid var(--line); }
@@ -176,11 +177,8 @@
 <body>
 <div class="wrap">
   <header class="day-head">
-    <div>
-      <h1 id="dayTitle">今日</h1>
-      <p id="dateLine">10月16日 · 星期五</p>
-    </div>
-    <button id="menuBtn" class="menu-btn" aria-label="選單">☰</button>
+    <h1 id="dayTitle">今日</h1>
+    <p id="dateLine">10月16日 · 星期五</p>
   </header>
 
   <div class="weeknav">
@@ -253,6 +251,8 @@
     <div class="mcal-grid" id="mcalGrid"></div>
   </div>
 </div>
+
+<button id="menuBtn" class="menu-fab" aria-label="選單">☰</button>
 
 <div class="sheet-backdrop" id="navSheet">
   <div class="sheet">
