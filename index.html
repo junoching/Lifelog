@@ -192,6 +192,18 @@
     *, *::before, *::after { animation:none !important; transition:none !important; }
   }
   .note { margin:26px 2px 0; color:var(--muted); font-size:12px; line-height:1.6; }
+  .ov-nav { display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; }
+  .ov-nav button { width:38px; height:38px; border-radius:50%; font-size:20px; color:var(--muted); }
+  .ov-nav button:active { background:var(--field); }
+  .ov-nav b { font-size:17px; font-weight:780; }
+  .ov-meta { text-align:center; color:var(--muted); font-size:13px; font-weight:600; margin:0 0 18px; }
+  .bd-row { margin:0 0 14px; }
+  .bd-head { display:flex; align-items:baseline; justify-content:space-between; font-size:15px; font-weight:600; }
+  .bd-head .bd-amt { font-weight:750; white-space:nowrap; }
+  .bd-head .bd-pct { color:var(--muted); font-size:12px; font-weight:600; margin-left:6px; }
+  .bd-bar { height:8px; background:var(--field); border-radius:4px; margin-top:6px; overflow:hidden; }
+  .bd-fill { height:100%; background:var(--ink); border-radius:4px; }
+  .ov-day { margin:16px 0 4px; color:var(--muted); font-size:12px; font-weight:700; letter-spacing:.04em; }
 </style>
 </head>
 <body>
@@ -278,6 +290,7 @@
 <div class="sheet-backdrop" id="navSheet">
   <div class="sheet">
     <button class="nav-row" id="navToday">今日<span class="chev">›</span></button>
+    <button class="nav-row" id="navMonthly">每月支出<span class="chev">›</span></button>
     <button class="nav-row" id="navSettings">設定<span class="chev">›</span></button>
   </div>
 </div>
@@ -310,6 +323,22 @@
     <input type="file" id="importFile" accept=".json,application/json" style="display:none">
     <p class="set-note">匯出所有待辦同支出做 JSON 檔案，保存在手機。匯入會以備份覆蓋現有資料。</p>
   </div>
+</div>
+
+<div class="page-overlay" id="monthlyPage">
+  <div class="page-head">
+    <button id="monthlyBack" aria-label="返回">‹</button>
+    <h2>每月支出</h2>
+  </div>
+  <div class="ov-nav">
+    <button id="ovPrev" aria-label="上個月">‹</button>
+    <b id="ovLabel"></b>
+    <button id="ovNext" aria-label="下個月">›</button>
+  </div>
+  <div class="spend-hero"><small>本月總支出</small><strong id="ovTotal">$0</strong></div>
+  <p class="ov-meta" id="ovMeta"></p>
+  <div id="ovCats"></div>
+  <div id="ovList"></div>
 </div>
 
 <div class="sheet-backdrop" id="editSheet">
@@ -511,6 +540,8 @@
   $('navToday').addEventListener('click',function(){$('navSheet').classList.remove('open');window.scrollTo({top:0,behavior:'smooth'});});
   $('navSettings').addEventListener('click',function(){$('navSheet').classList.remove('open');$('settingsPage').classList.add('open');});
   $('settingsBack').addEventListener('click',function(){$('settingsPage').classList.remove('open');});
+  $('navMonthly').addEventListener('click',function(){$('navSheet').classList.remove('open');ovY=today.getFullYear();ovM=today.getMonth();renderMonthly();$('monthlyPage').classList.add('open');});
+  $('monthlyBack').addEventListener('click',function(){$('monthlyPage').classList.remove('open');});
 
   var editTarget=null;
   function pad2(n){return String(n).padStart(2,'0');}
@@ -812,6 +843,37 @@
     };
     rd.readAsText(f);
   });
+
+  /* ---- 每月支出總覽（lite） ---- */
+  var ovY=today.getFullYear(), ovM=today.getMonth();
+  function renderMonthly(){
+    $('ovLabel').textContent=ovY+'年'+(ovM+1)+'月';
+    var list=expenses.filter(function(x){var d=dateOf(x.off);return d.getFullYear()===ovY&&d.getMonth()===ovM;});
+    var total=list.reduce(function(s,x){return s+x.amt;},0);
+    $('ovTotal').textContent=fmtAmt(total);
+    if(!list.length){$('ovMeta').textContent='';$('ovCats').innerHTML='';$('ovList').innerHTML='<div style="padding:16px 0;color:var(--muted)">本月尚無支出記錄。</div>';return;}
+    var daysInMonth=new Date(ovY,ovM+1,0).getDate();
+    var elapsed=(ovY===today.getFullYear()&&ovM===today.getMonth())?today.getDate():daysInMonth;
+    $('ovMeta').textContent=list.length+' 筆 · 日均 '+fmtAmt(total/Math.max(1,elapsed));
+    var byCat={};
+    list.forEach(function(x){var c=x.cat||'其他';byCat[c]=(byCat[c]||0)+x.amt;});
+    var cats=Object.keys(byCat).map(function(c){return {cat:c,amt:byCat[c]};}).sort(function(a,b){return b.amt-a.amt;});
+    $('ovCats').innerHTML='<div class="card" style="padding:14px 16px">'+cats.map(function(o){
+      var pct=total?Math.round(o.amt/total*100):0;
+      return '<div class="bd-row"><div class="bd-head"><span>'+esc(o.cat)+'<span class="bd-pct">'+pct+'%</span></span><span class="bd-amt">'+fmtAmt(o.amt)+'</span></div><div class="bd-bar"><div class="bd-fill" style="width:'+pct+'%"></div></div></div>';
+    }).join('')+'</div>';
+    var sorted=list.slice().sort(function(a,b){return b.off-a.off;});
+    var html='';
+    for(var i=0;i<sorted.length;i++){
+      var x=sorted[i];
+      if(i===0||x.off!==sorted[i-1].off)html+='<div class="ov-day">'+fmt(dateOf(x.off))+'</div><div class="card" style="margin-bottom:6px">';
+      html+='<div class="exp-row"><div>'+esc(x.t)+(x.link?'<span class="linked">↳ '+esc(x.link)+'</span>':'')+'<small>'+esc(x.cat||'其他')+'</small></div><div class="amt">$'+x.amt+'</div></div>';
+      if(i===sorted.length-1||sorted[i+1].off!==x.off)html+='</div>';
+    }
+    $('ovList').innerHTML=html;
+  }
+  $('ovPrev').addEventListener('click',function(){ovM--;if(ovM<0){ovM=11;ovY--;}renderMonthly();});
+  $('ovNext').addEventListener('click',function(){ovM++;if(ovM>11){ovM=0;ovY++;}renderMonthly();});
 
   applyTheme();renderCatChips();renderCatList();
 
