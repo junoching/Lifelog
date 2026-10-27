@@ -875,9 +875,36 @@
   $('ovPrev').addEventListener('click',function(){ovM--;if(ovM<0){ovM=11;ovY--;}renderMonthly();});
   $('ovNext').addEventListener('click',function(){ovM++;if(ovM>11){ovM=0;ovY++;}renderMonthly();});
 
+  /* ---- 捷徑快速記帳：讀網址參數 ?amt=金額&name=商戶，預填支出表單 ----
+     由捷徑「交易」自動化開出；讀完即清走參數，重整不會重複觸發；
+     入帳仍要使用者按＋核對，等於防重複的最後一關。 */
+  function quickAddFromUrl(){
+    var q;
+    try{q=new URLSearchParams(location.search);}catch(e){return;}
+    var rawAmt=q.get('amt'), rawName=q.get('name');
+    if(rawAmt===null&&rawName===null)return;
+    try{history.replaceState(null,'',location.pathname+location.hash);}catch(e){}
+    var amt=null;
+    if(rawAmt!==null&&String(rawAmt).indexOf('-')<0){
+      var v=parseFloat(String(rawAmt).replace(/[^0-9.]/g,''));
+      if(isFinite(v)&&v>0&&v<=99999999)amt=Math.round(v*100)/100;
+    }
+    var name=(rawName===null?'':String(rawName)).trim().slice(0,100);
+    if(amt===null&&!name)return;
+    if(selOffset!==0){selOffset=0;stripBase=mondayOf(today);renderAll();}
+    $('taskComposer').style.display='none';
+    $('expComposer').style.display='flex';
+    if(name)$('expTitle').value=name;
+    if(amt!==null)$('expAmt').value=amt;
+    try{$('expComposer').scrollIntoView({behavior:'smooth',block:'center'});}catch(e){}
+    if(amt===null)$('expAmt').focus();else if(!name)$('expTitle').focus();
+    toast('已帶入交易資料，請核對後記錄');
+  }
+
   applyTheme();renderCatChips();renderCatList();
 
   renderAll();
+  quickAddFromUrl();
 })();
 </script>
 </body>
