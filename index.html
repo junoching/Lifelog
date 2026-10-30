@@ -138,6 +138,14 @@
   .sheet { width:min(100%,460px); background:var(--panel); border-radius:18px; padding:20px 18px;
     box-shadow:0 20px 50px rgba(0,0,0,.28); animation:up .22s var(--ease-out); }
   @keyframes up { from { transform:translateY(24px); opacity:.4; } }
+  /* motion-prompt #051 Bottom Sheet（試套用）：升起 0.40s easeOutCubic、遮罩同步淡入、
+     頂部拖動把手 52×6；數字來源同搬法見檔尾 script 註釋。 */
+  .sheet-backdrop.open { animation:mpScrim .4s cubic-bezier(.33,1,.68,1) both; }
+  @keyframes mpScrim { from { background-color:rgba(0,0,0,0); } }
+  .sheet { animation:mpSheet .4s cubic-bezier(.33,1,.68,1) both; }
+  @keyframes mpSheet { from { transform:translateY(100%); } }
+  .sheet-grab { width:52px; height:6px; border-radius:3px; background:var(--line);
+    margin:0 auto 14px; touch-action:none; cursor:grab; }
   .sheet h3 { margin:0 0 4px; font-size:19px; font-weight:780; letter-spacing:-.02em; }
   .sheet p.sub { margin:0 0 14px; color:var(--muted); font-size:13px; line-height:1.5; }
   .amt-input { width:100%; border:0; border-radius:12px; background:var(--field); color:var(--ink);
@@ -905,6 +913,69 @@
 
   renderAll();
   quickAddFromUrl();
+
+  /* ---- motion-prompt #051 Bottom Sheet（試套用，未上正式版） ----
+     見本：https://showheyohtaki.github.io/motion-prompt/#051（MIT, (c) 2026 Shohei Ohtaki）
+     照 porting 規則只搬數字，顏色用回本 app 色票：
+       升起：開合量 0→1、0.40 秒、easeOutCubic＝cubic-bezier(.33,1,.68,1)；
+       遮罩：同一條曲線同步淡入至本 app 既有 rgba(0,0,0,.35)；
+       拖動把手：52×6、圓角 3（見本原值），向下拉跟手指走，遮罩同步變淡；
+       鬆手過 80px 或拉過半 → easeInOutCubic 0.28 秒滑走關閉，否則彈回原位。
+     用掣／點遮罩關閉維持原本即時隱藏，唔喺今次試驗範圍。 */
+  document.querySelectorAll('.sheet-backdrop').forEach(function(bd){
+    var sh=bd.querySelector('.sheet'); if(!sh) return;
+    var grab=document.createElement('div');
+    grab.className='sheet-grab'; grab.setAttribute('aria-hidden','true');
+    sh.insertBefore(grab, sh.firstChild);
+    /* 每次開 sheet 清走上次拖動留低嘅 inline 樣式，入場動畫先會重播 */
+    new MutationObserver(function(){
+      if(bd.classList.contains('open')){
+        sh.style.animation=''; sh.style.transform=''; sh.style.transition='';
+        bd.style.animation=''; bd.style.background=''; bd.style.transition='';
+      }
+    }).observe(bd,{attributes:true,attributeFilter:['class']});
+    /* 入場動畫播完即解除，否則 fill 會壓住拖動時嘅 inline transform */
+    sh.addEventListener('animationend',function(e){ if(e.animationName==='mpSheet') sh.style.animation='none'; });
+    bd.addEventListener('animationend',function(e){ if(e.animationName==='mpScrim') bd.style.animation='none'; });
+    var drag=null;
+    grab.addEventListener('pointerdown',function(e){
+      drag={dy:0, h:sh.offsetHeight||1, y0:e.clientY};
+      grab.setPointerCapture(e.pointerId);
+      sh.style.animation='none'; bd.style.animation='none';
+      sh.style.transition='none'; bd.style.transition='none';
+      e.preventDefault();
+    });
+    grab.addEventListener('pointermove',function(e){
+      if(!drag) return;
+      drag.dy=Math.max(0, e.clientY-drag.y0);
+      sh.style.transform='translateY('+drag.dy+'px)';
+      var a=Math.max(0, 1-drag.dy/drag.h);
+      bd.style.background='rgba(0,0,0,'+(0.35*a).toFixed(3)+')';
+    });
+    function endDrag(){
+      if(!drag) return;
+      var dy=drag.dy, h=drag.h; drag=null;
+      if(dy>80 || dy>h/2){
+        sh.style.transition='transform .28s cubic-bezier(.65,0,.35,1)';
+        bd.style.transition='background-color .28s cubic-bezier(.65,0,.35,1)';
+        sh.style.transform='translateY(100%)';
+        bd.style.background='rgba(0,0,0,0)';
+        setTimeout(function(){
+          bd.classList.remove('open');
+          sh.style.transition=''; sh.style.transform='';
+          bd.style.transition=''; bd.style.background='';
+        },290);
+      } else {
+        sh.style.transition='transform .3s cubic-bezier(.33,1,.68,1)';
+        bd.style.transition='background-color .3s cubic-bezier(.33,1,.68,1)';
+        sh.style.transform='';
+        bd.style.background='';
+        setTimeout(function(){ sh.style.transition=''; bd.style.transition=''; },310);
+      }
+    }
+    grab.addEventListener('pointerup',endDrag);
+    grab.addEventListener('pointercancel',endDrag);
+  });
 })();
 </script>
 </body>
