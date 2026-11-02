@@ -24,7 +24,7 @@
   main { flex: 1; min-height: 0; display: grid; grid-template-columns: 5fr 7fr; gap: 16px; }
   .col { display: grid; gap: 16px; min-height: 0; }
   .col.left { grid-template-rows: 1.05fr 0.95fr; }
-  .col.right { grid-template-rows: 1.25fr 0.75fr; }
+  .col.right { grid-template-rows: 0.95fr 1.05fr; }
   .tile { background: #0a0a0a; border: 1px solid #262626; border-radius: 16px; padding: 22px; display: flex; flex-direction: column; min-height: 0; overflow: hidden; }
   .tile-label { font-size: 12px; font-weight: 700; letter-spacing: 3px; color: #71717a; text-transform: uppercase; display: flex; justify-content: space-between; }
   /* 時鐘 */
@@ -42,7 +42,7 @@
   .weather-sub .v { font-size: 19px; font-weight: 900; margin-top: 2px; }
   #weatherWarning.warn { color: #f87171; }
   /* ETA */
-  .eta-row { display: flex; align-items: center; padding: 16px 2px; border-bottom: 1px solid #1c1c1e; }
+  .eta-row { display: flex; align-items: center; padding: 9px 2px; border-bottom: 1px solid #1c1c1e; }
   .eta-row:last-child { border-bottom: none; }
   .eta-route { font-size: 32px; font-weight: 900; width: 132px; flex: none; font-variant-numeric: tabular-nums; }
   .eta-route small { display: block; font-size: 12px; font-weight: 700; color: #71717a; letter-spacing: 2px; }
@@ -50,27 +50,36 @@
   .eta-stop .name { font-size: 20px; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .eta-stop .dest { font-size: 14px; font-weight: 600; color: #a1a1aa; margin-top: 2px; }
   .eta-mins { text-align: right; }
-  .eta-mins .big { font-size: 44px; font-weight: 900; line-height: 1; font-variant-numeric: tabular-nums; }
+  .eta-mins .big { font-size: 40px; font-weight: 900; line-height: 1; font-variant-numeric: tabular-nums; }
   .eta-mins .big small { font-size: 16px; font-weight: 700; color: #a1a1aa; }
   .eta-mins .next { font-size: 13px; font-weight: 600; color: #71717a; margin-top: 4px; }
   .eta-mins.soon .big { color: #fbbf24; }
   .eta-empty { color: #52525b; font-size: 18px; font-weight: 700; text-align: center; margin: auto; }
   /* 屋企提示 */
-  .note-item { display: flex; align-items: center; padding: 10px 2px; border-bottom: 1px solid #1c1c1e; font-size: 19px; font-weight: 700; }
+  .note-item { display: flex; align-items: center; padding: 13px 2px; border-bottom: 1px solid #1c1c1e; font-size: 24px; font-weight: 700; }
   .note-item:last-child { border-bottom: none; }
-  .note-item input { width: 24px; height: 24px; margin-right: 12px; accent-color: #f4f4f5; flex: none; }
+  .note-item input { width: 28px; height: 28px; margin-right: 14px; accent-color: #f4f4f5; flex: none; }
   .note-item.done span { color: #52525b; text-decoration: line-through; }
-  .note-item .when { margin-left: auto; font-size: 13px; color: #71717a; font-weight: 600; flex: none; padding-left: 10px; }
+  .note-item .when { margin-left: auto; font-size: 15px; color: #71717a; font-weight: 600; flex: none; padding-left: 10px; }
   /* 彈窗 */
   .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.88); z-index: 60; align-items: center; justify-content: center; padding: 24px; }
   .modal.open { display: flex; }
-  .modal-box { background: #0a0a0a; border: 1px solid #3f3f46; border-radius: 16px; padding: 24px; width: 100%; max-width: 560px; max-height: 86%; display: flex; flex-direction: column; }
+  .modal-box { background: #0a0a0a; border: 1px solid #3f3f46; border-radius: 16px; padding: 24px; width: 100%; max-width: 560px; max-height: 86%; display: flex; flex-direction: column; overflow-y: auto; }
   .modal-box h3 { font-size: 21px; font-weight: 900; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; }
   .modal-box h3 button { background: none; border: none; color: #a1a1aa; font-size: 28px; cursor: pointer; }
   .modal-form { display: flex; gap: 10px; margin-bottom: 14px; }
   .modal-form input[type="text"], .modal-form input[type="date"] { flex: 1; background: #000; border: 1px solid #3f3f46; border-radius: 10px; padding: 11px 13px; color: #fff; font-size: 16px; font-weight: 700; min-width: 0; }
   .modal-form select { flex: 1; background: #000; border: 1px solid #3f3f46; border-radius: 10px; padding: 11px 13px; color: #fff; font-size: 16px; font-weight: 700; min-width: 0; }
   .modal-form select:disabled { opacity: 0.45; }
+  /* v4：巴士方向／車站改㩒得清單（舊 iPad 原生 select 開唔到） */
+  .pick-label { font-size: 12px; font-weight: 700; letter-spacing: 2px; color: #71717a; margin-bottom: 8px; }
+  .pick-list { margin-bottom: 14px; }
+  .pick-list.scroll { max-height: 190px; overflow-y: auto; }
+  .pick-row { background: #111; border: 1px solid #262626; border-radius: 10px; padding: 13px 14px; margin-bottom: 8px; font-size: 17px; font-weight: 700; cursor: pointer; }
+  .pick-row.sel { background: #f4f4f5; color: #000; border-color: #f4f4f5; }
+  .pick-row .sub { display: block; font-size: 13px; font-weight: 600; color: #a1a1aa; margin-top: 2px; }
+  .pick-row.sel .sub { color: #3f3f46; }
+  .pick-row.hint { color: #52525b; cursor: default; }
   .seg { display: flex; gap: 10px; margin-bottom: 14px; }
   .seg .btn { flex: 1; padding: 10px; }
   .modal-list { overflow-y: auto; min-height: 0; }
@@ -149,12 +158,10 @@
           <input type="text" id="routeInput" placeholder="路線號碼，例：1A / 968" style="text-transform:uppercase;">
           <button class="btn solid" onclick="searchRoute()">搜尋</button>
         </div>
-        <div class="modal-form">
-          <select id="busDirSelect" disabled onchange="loadBusStops()"><option value="">先搜尋路線</option></select>
-        </div>
-        <div class="modal-form">
-          <select id="busStopSelect" disabled><option value="">先揀方向</option></select>
-        </div>
+        <div class="pick-label">方向 — 㩒一行揀</div>
+        <div id="busDirList" class="pick-list"><div class="pick-row hint">先搜尋路線</div></div>
+        <div class="pick-label">車站 — 㩒一行揀</div>
+        <div id="busStopList" class="pick-list scroll"><div class="pick-row hint">先揀方向</div></div>
       </div>
       <!-- 港鐵：線 → 站 → 方向（方向名由即時班次自動顯示） -->
       <div id="mtrForm" style="display:none;">
@@ -200,8 +207,9 @@
 
 <script>
 /* ===== 路線：存喺呢部機嘅 localStorage，喺畫面「設定路線」度改，唔使再改 code ===== */
-/* 發佈版：唔預載屋企附近路線（public repo 唔好曝露住邊區）；路線喺 iPad 度用「設定路線」加入，存 localStorage */
+/*DEFAULT-ROUTES-START*/
 var DEFAULT_ROUTES = [];
+/*DEFAULT-ROUTES-END*/
 function loadRoutes() {
   var saved = localStorage.getItem('sh2_routes');
   if (saved) return JSON.parse(saved);
@@ -351,7 +359,7 @@ function refreshETAs() {
 }
 
 /* ===== 路線設定（喺畫面改，存 localStorage） ===== */
-var routeForm = { company: 'KMB', busDirs: [], busStops: [], mtrDest: {}, stopNameCache: {} };
+var routeForm = { company: 'KMB', busDirs: [], busStops: [], busStopNames: [], busDirIdx: 0, busStopIdx: 0, mtrDest: {}, stopNameCache: {} };
 function routeStatus(msg) { document.getElementById('routeFormStatus').textContent = msg; }
 function openRoutesModal() { renderRoutesModalList(); document.getElementById('routesModal').className = 'modal open'; }
 function closeRoutesModal() { document.getElementById('routesModal').className = 'modal'; }
@@ -391,8 +399,8 @@ function searchRoute() {
   var co = routeForm.company;
   if (!route) return;
   routeStatus('搜尋緊 ' + route + '…');
-  var dirSel = document.getElementById('busDirSelect'), stopSel = document.getElementById('busStopSelect');
-  dirSel.disabled = true; stopSel.disabled = true;
+  document.getElementById('busDirList').innerHTML = '<div class="pick-row hint">搜尋緊…</div>';
+  document.getElementById('busStopList').innerHTML = '<div class="pick-row hint">先揀方向</div>';
   busRouteInfo(co, route, 'outbound').then(function (out) {
     if (!out) { routeStatus('搵唔到呢條路線，檢查號碼同揀啱公司。'); return; }
     var dirs = [{ bound: 'O', word: 'outbound', orig: out.orig_tc, dest: out.dest_tc }];
@@ -402,13 +410,36 @@ function searchRoute() {
         else dirs.push({ bound: 'I', word: 'inbound', orig: out.dest_tc, dest: out.orig_tc });
       }
       routeForm.busDirs = dirs;
-      var html = '', i;
-      for (i = 0; i < dirs.length; i++) html += '<option value="' + i + '">往 ' + esc(dirs[i].dest) + '（' + esc(dirs[i].orig) + ' 開出）</option>';
-      dirSel.innerHTML = html; dirSel.disabled = false;
+      routeForm.busDirIdx = 0; routeForm.busStopIdx = 0;
+      renderBusDirs();
       routeStatus('');
       loadBusStops();
     });
   });
+}
+function renderBusDirs() {
+  var html = '', i, d;
+  for (i = 0; i < routeForm.busDirs.length; i++) {
+    d = routeForm.busDirs[i];
+    html += '<div class="pick-row' + (i === routeForm.busDirIdx ? ' sel' : '') + '" onclick="pickBusDir(' + i + ')">往 ' + esc(d.dest) + '<span class="sub">' + esc(d.orig) + ' 開出</span></div>';
+  }
+  document.getElementById('busDirList').innerHTML = html || '<div class="pick-row hint">先搜尋路線</div>';
+}
+function pickBusDir(i) {
+  routeForm.busDirIdx = i; routeForm.busStopIdx = 0;
+  renderBusDirs();
+  loadBusStops();
+}
+function renderBusStops() {
+  var html = '', j;
+  for (j = 0; j < routeForm.busStops.length; j++) {
+    html += '<div class="pick-row' + (j === routeForm.busStopIdx ? ' sel' : '') + '" onclick="pickBusStop(' + j + ')">' + (j + 1) + '. ' + esc(routeForm.busStopNames[j] || routeForm.busStops[j].stop) + '</div>';
+  }
+  document.getElementById('busStopList').innerHTML = html || '<div class="pick-row hint">呢個方向冇站資料</div>';
+}
+function pickBusStop(i) {
+  routeForm.busStopIdx = i;
+  renderBusStops();
 }
 function busStopName(co, stopId) {
   var key = co + '_' + stopId;
@@ -425,10 +456,9 @@ function busStopName(co, stopId) {
 function loadBusStops() {
   var co = routeForm.company;
   var route = document.getElementById('routeInput').value.trim().toUpperCase();
-  var dir = routeForm.busDirs[parseInt(document.getElementById('busDirSelect').value, 10) || 0];
+  var dir = routeForm.busDirs[routeForm.busDirIdx || 0];
   if (!dir) return;
-  var stopSel = document.getElementById('busStopSelect');
-  stopSel.disabled = true; stopSel.innerHTML = '<option value="">載入車站中…</option>';
+  document.getElementById('busStopList').innerHTML = '<div class="pick-row hint">載入車站中…</div>';
   var url = co === 'KMB'
     ? 'https://data.etabus.gov.hk/v1/transport/kmb/route-stop/' + route + '/' + dir.word + '/1'
     : 'https://rt.data.gov.hk/v2/transport/citybus/route-stop/ctb/' + route + '/' + dir.word;
@@ -439,9 +469,9 @@ function loadBusStops() {
     for (var i = 0; i < rows.length; i++) jobs.push(busStopName(co, rows[i].stop));
     Promise.all(jobs).then(function (names) {
       routeForm.busStops = rows;
-      var html = '';
-      for (var j = 0; j < rows.length; j++) html += '<option value="' + j + '">' + (j + 1) + '. ' + esc(names[j]) + '</option>';
-      stopSel.innerHTML = html; stopSel.disabled = false;
+      routeForm.busStopNames = names;
+      if (routeForm.busStopIdx >= rows.length) routeForm.busStopIdx = 0;
+      renderBusStops();
       routeStatus('');
     });
   }).catch(function () { routeStatus('載入車站失敗，再試過。'); });
@@ -500,14 +530,12 @@ function confirmAddRoute() {
           stopName: staSel.options[staSel.selectedIndex].text + '站',
           dest: routeForm.mtrDest[dir] || dir };
   } else {
-    var dirObj = routeForm.busDirs[parseInt(document.getElementById('busDirSelect').value, 10) || 0];
-    var stopIdx = parseInt(document.getElementById('busStopSelect').value, 10);
-    var stopRow = routeForm.busStops[stopIdx];
+    var dirObj = routeForm.busDirs[routeForm.busDirIdx || 0];
+    var stopRow = routeForm.busStops[routeForm.busStopIdx || 0];
     if (!dirObj || !stopRow) { routeStatus('未揀齊方向／車站。'); return; }
-    var stopSel = document.getElementById('busStopSelect');
     r = { company: routeForm.company, route: document.getElementById('routeInput').value.trim().toUpperCase(),
           stop: stopRow.stop, bound: dirObj.bound,
-          stopName: stopSel.options[stopSel.selectedIndex].text.replace(/^\d+\.\s*/, ''), dest: dirObj.dest };
+          stopName: routeForm.busStopNames[routeForm.busStopIdx || 0] || stopRow.stop, dest: dirObj.dest };
   }
   ROUTES.push(r);
   saveRoutes(); renderRoutes(); refreshETAs(); renderRoutesModalList();
