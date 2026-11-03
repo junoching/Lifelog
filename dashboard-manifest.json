@@ -1,0 +1,13 @@
+{
+  "name": "屋企儀表板",
+  "short_name": "屋企",
+  "description": "屋企牆上儀表板：時間、天氣、交通班次同屋企提示。",
+  "lang": "zh-HK",
+  "start_url": "dashboard.html",
+  "display": "standalone",
+  "background_color": "#000000",
+  "theme_color": "#000000",
+  "icons": [
+    { "src": "dashboard-icon.png", "sizes": "512x512", "type": "image/png", "purpose": "any" }
+  ]
+}
