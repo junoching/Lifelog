@@ -19,7 +19,7 @@
     display: flex; flex-direction: column; padding: 16px;
   }
   header { display: flex; justify-content: space-between; align-items: center; padding-bottom: 12px; border-bottom: 1px solid #262626; margin-bottom: 16px; flex: none; }
-  header .brand { font-size: 22px; font-weight: 900; letter-spacing: 4px; }
+  header .brand { font-size: 20px; font-weight: 900; letter-spacing: 4px; margin: 0; }
   header .brand .dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #34d399; margin-right: 10px; vertical-align: middle; }
   .btn { background: #111; color: #d4d4d8; border: 1px solid #3f3f46; border-radius: 10px; padding: 8px 14px; font-size: 14px; font-weight: 700; cursor: pointer; }
   .btn.solid { background: #f4f4f5; color: #000; border-color: #f4f4f5; }
@@ -28,41 +28,45 @@
   .col.left { grid-template-rows: 1.05fr 0.95fr; }
   .col.right { grid-template-rows: 0.95fr 1.05fr; }
   .tile { background: #0a0a0a; border: 1px solid #262626; border-radius: 16px; padding: 22px; display: flex; flex-direction: column; min-height: 0; overflow: hidden; }
-  .tile-label { font-size: 12px; font-weight: 700; letter-spacing: 3px; color: #71717a; text-transform: uppercase; display: flex; justify-content: space-between; }
+  .tile-label { font-size: 15px; font-weight: 600; letter-spacing: .5px; color: #a1a1aa; display: flex; justify-content: space-between; }
   /* 時鐘 */
-  #clockTime { font-size: 118px; font-weight: 900; letter-spacing: -2px; line-height: 1; text-align: center; margin: auto 0; font-variant-numeric: tabular-nums; }
-  #clockDate { font-size: 22px; font-weight: 700; color: #d4d4d8; text-align: center; }
+  #clockTime { font-size: clamp(60px, 11.5vw, 128px); font-weight: 900; letter-spacing: -2px; line-height: 1; text-align: center; margin: auto 0; font-variant-numeric: tabular-nums; }
+  #clockDate { font-size: 20px; font-weight: 700; color: #d4d4d8; text-align: center; }
   #expiryLine { display: none; margin-top: 14px; border-top: 1px solid #262626; padding-top: 12px; font-size: 16px; font-weight: 800; color: #fbbf24; cursor: pointer; }
   #expiryLine.expired { color: #f87171; }
   /* 天氣 */
   .weather-main { display: flex; align-items: baseline; margin: auto 0; }
-  #weatherTemp { font-size: 96px; font-weight: 900; line-height: 1; font-variant-numeric: tabular-nums; }
-  .weather-unit { font-size: 22px; font-weight: 700; color: #a1a1aa; margin-left: 8px; }
-  #weatherDesc { font-size: 22px; font-weight: 800; color: #e4e4e7; margin-left: auto; text-align: right; }
+  #weatherTemp { font-size: clamp(52px, 9vw, 96px); font-weight: 900; line-height: 1; font-variant-numeric: tabular-nums; }
+  .weather-unit { font-size: 20px; font-weight: 700; color: #a1a1aa; margin-left: 8px; }
+  #weatherDesc { font-size: 20px; font-weight: 800; color: #e4e4e7; margin-left: auto; text-align: right; }
   .weather-sub { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; border-top: 1px solid #262626; padding-top: 14px; }
-  .weather-sub .k { font-size: 12px; font-weight: 700; color: #71717a; }
-  .weather-sub .v { font-size: 19px; font-weight: 900; margin-top: 2px; }
+  .weather-sub .k { font-size: 13px; font-weight: 700; color: #9c9ca5; }
+  .weather-sub .v { font-size: 20px; font-weight: 900; margin-top: 2px; }
   #weatherWarning.warn { color: #f87171; }
   /* ETA */
   .eta-row { display: flex; align-items: center; padding: 9px 2px; border-bottom: 1px solid #1c1c1e; }
   .eta-row:last-child { border-bottom: none; }
   .eta-route { font-size: 32px; font-weight: 900; width: 132px; flex: none; font-variant-numeric: tabular-nums; }
-  .eta-route small { display: block; font-size: 12px; font-weight: 700; color: #71717a; letter-spacing: 2px; }
+  .eta-route small { display: block; font-size: 13px; font-weight: 700; color: #9c9ca5; letter-spacing: .5px; }
   .eta-stop { flex: 1; min-width: 0; }
   .eta-stop .name { font-size: 20px; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .eta-stop .dest { font-size: 14px; font-weight: 600; color: #a1a1aa; margin-top: 2px; }
   .eta-mins { text-align: right; }
   .eta-mins .big { font-size: 40px; font-weight: 900; line-height: 1; font-variant-numeric: tabular-nums; }
   .eta-mins .big small { font-size: 16px; font-weight: 700; color: #a1a1aa; }
-  .eta-mins .next { font-size: 13px; font-weight: 600; color: #71717a; margin-top: 4px; }
+  .eta-mins .next { font-size: 13px; font-weight: 600; color: #9c9ca5; margin-top: 4px; }
   .eta-mins.soon .big { color: #fbbf24; }
-  .eta-empty { color: #52525b; font-size: 18px; font-weight: 700; text-align: center; margin: auto; }
+  .eta-empty { color: #52525b; font-size: 20px; font-weight: 700; text-align: center; margin: auto; }
   /* 屋企提示 */
   .note-item { display: flex; align-items: center; padding: 13px 2px; border-bottom: 1px solid #1c1c1e; font-size: 24px; font-weight: 700; }
   .note-item:last-child { border-bottom: none; }
   .note-item input { width: 28px; height: 28px; margin-right: 14px; accent-color: #f4f4f5; flex: none; }
   .note-item.done span { color: #52525b; text-decoration: line-through; }
-  .note-item .when { margin-left: auto; font-size: 15px; color: #71717a; font-weight: 600; flex: none; padding-left: 10px; }
+  .note-item .when { margin-left: auto; font-size: 15px; color: #9c9ca5; font-weight: 600; flex: none; padding-left: 10px; }
+  #notesList { display: flex; flex-direction: column; flex: 1; }
+  #notesList.few { justify-content: space-evenly; }
+  #notesList.few .note-item { font-size: 30px; padding-top: 18px; padding-bottom: 18px; border-bottom: none; }
+  #notesList.few .note-item input { width: 34px; height: 34px; }
   /* 彈窗 */
   .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.88); z-index: 60; align-items: center; justify-content: center; padding: 24px; }
   .modal.open { display: flex; }
@@ -74,7 +78,7 @@
   .modal-form select { flex: 1; background: #000; border: 1px solid #3f3f46; border-radius: 10px; padding: 11px 13px; color: #fff; font-size: 16px; font-weight: 700; min-width: 0; }
   .modal-form select:disabled { opacity: 0.45; }
   /* v4：巴士方向／車站改㩒得清單（舊 iPad 原生 select 開唔到） */
-  .pick-label { font-size: 12px; font-weight: 700; letter-spacing: 2px; color: #71717a; margin-bottom: 8px; }
+  .pick-label { font-size: 13px; font-weight: 700; letter-spacing: .5px; color: #9c9ca5; margin-bottom: 8px; }
   .pick-list { margin-bottom: 14px; }
   .pick-list.scroll { max-height: 190px; overflow-y: auto; }
   .pick-row { background: #111; border: 1px solid #262626; border-radius: 10px; padding: 13px 14px; margin-bottom: 8px; font-size: 17px; font-weight: 700; cursor: pointer; }
@@ -94,14 +98,14 @@
   #nightClock { font-size: 130px; font-weight: 900; color: #3f3f46; line-height: 1; font-variant-numeric: tabular-nums; }
   #nightDate { font-size: 20px; font-weight: 700; color: #27272a; margin-top: 14px; }
   @media (max-width: 700px) {
-    #clockTime { font-size: 76px; } #weatherTemp { font-size: 64px; } .eta-mins .big { font-size: 34px; }
+    .eta-mins .big { font-size: 34px; }
   }
 </style>
 </head>
 <body>
 
 <header>
-  <div class="brand"><span class="dot"></span>屋企</div>
+  <h1 class="brand"><span class="dot"></span>屋企</h1>
   <div>
     <button class="btn" id="nightToggleBtn" onclick="toggleNightAuto()">夜間：自動</button>
     <button class="btn solid" onclick="requestFullscreenApp()">全螢幕</button>
@@ -111,14 +115,14 @@
 <main>
   <div class="col left">
     <section class="tile">
-      <div class="tile-label"><span>Hong Kong</span><span id="liveSeconds">00</span></div>
+      <div class="tile-label"><span>時間</span><span id="liveSeconds">00</span></div>
       <div id="clockTime">00:00</div>
       <div id="clockDate">—</div>
       <div id="expiryLine" onclick="openInventoryModal()"></div>
     </section>
 
     <section class="tile">
-      <div class="tile-label"><span>HKO Weather</span><span id="weatherUpdated"></span></div>
+      <div class="tile-label"><span>天氣</span><span id="weatherUpdated"></span></div>
       <div class="weather-main">
         <div id="weatherTemp">--°</div><div class="weather-unit">°C</div>
         <div id="weatherDesc">載入中</div>
@@ -132,7 +136,7 @@
 
   <div class="col right">
     <section class="tile">
-      <div class="tile-label"><span>Transport ETA</span><span><span style="margin-right:10px;">每 30 秒更新</span><button class="btn" style="padding:4px 12px; font-size:13px;" onclick="openRoutesModal()">設定路線</button></span></div>
+      <div class="tile-label"><span>交通</span><span><span style="margin-right:10px; font-size:13px; color:#9c9ca5;">每 30 秒更新</span><button class="btn" style="padding:4px 12px; font-size:13px;" onclick="openRoutesModal()">設定路線</button></span></div>
       <div id="etaList" style="margin: auto 0;"></div>
     </section>
 
@@ -554,6 +558,7 @@ function renderNotes() {
       (n.when ? '<span class="when">' + esc(n.when) + '</span>' : '') + '</div>';
   }
   document.getElementById('notesList').innerHTML = html || '<div class="note-item"><span style="color:#52525b">暫無提示</span></div>';
+  document.getElementById('notesList').className = state.notes.length <= 3 ? 'few' : '';
   var m = '';
   for (i = 0; i < state.notes.length; i++) {
     n = state.notes[i];
