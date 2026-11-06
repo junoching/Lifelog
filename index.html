@@ -529,7 +529,7 @@
     var html=list.map(function(o){
       return '<div class="swipe"><div class="row swipe-content'+(o.i===enterTaskIdx?' row-enter':'')+'" data-task="'+o.i+'"><button class="check" aria-label="完成"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="m5 12 4 4L19 6"/></svg></button><div class="label">'+(o.x.time?'<span class="appt-time">'+esc(o.x.time)+'</span>':'')+esc(o.x.t)+(o.x.rep?'<span class=\"linked\">'+(o.x.rep==='w'?'每週':'每月')+'</span>':'')+'</div></div><span class="swipe-actions" inert><button class="swipe-act edit" data-edit-task="'+o.i+'">編輯</button><button class="swipe-act del" data-del-task="'+o.i+'">刪除</button></span></div>';
     }).join('');
-    if(!all.length)html=emptyState('task','本日尚無待辦事項。','新增待辦');
+    if(!all.length)html=emptyState('task','本日尚無待辦事項。');
     if(done.length){
       html+='<div class="group-label">已完成（'+done.length+'）</div>';
       html+=done.map(function(o){
@@ -553,7 +553,7 @@
     countUp($('spendTotal'),total);
     $('expenseList').innerHTML=list.slice().reverse().map(function(o){var x=o.x;
       return '<div class="swipe"><div class="exp-row swipe-content'+(o.i===enterExpIdx?' row-enter':'')+'"><div>'+esc(x.t)+(x.link?'<span class="linked">↳ '+esc(x.link)+'</span>':'')+'<small>'+esc(x.cat||'其他')+'</small></div><div class="amt">$'+x.amt+'</div></div><span class="swipe-actions" inert><button class="swipe-act edit" data-edit-exp="'+o.i+'">編輯</button><button class="swipe-act del" data-del-exp="'+o.i+'">刪除</button></span></div>';
-    }).join('')||emptyState('exp','本日尚無支出記錄。','記一筆支出');
+    }).join('')||emptyState('exp','本日尚無支出記錄。');
   }
   function fmtAmt(v){return '$'+(v%1?v.toFixed(1):Math.round(v));}
   function countUp(el,to){
