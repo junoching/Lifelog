@@ -49,6 +49,13 @@
   .page-head button { font-size:26px; font-weight:700; color:var(--ink); padding:4px 10px; }
   .page-head h2 { margin:0; font-size:24px; font-weight:800; letter-spacing:-.02em; }
   .page-empty { color:var(--muted); font-size:14px; margin:8px 2px; }
+  /* ---- 空狀態（composition 參照 motion-prompt #072：線稿圖示＋訊息＋行動掣；0.35 秒線性淡入兼升 8px） ---- */
+  .empty-state { text-align:center; padding:24px 10px 20px; animation:emptyIn .35s linear both; }
+  @keyframes emptyIn { from { opacity:0; transform:translateY(8px); } }
+  .empty-state svg { width:42px; height:42px; color:var(--muted); opacity:.75; }
+  .empty-state p { color:var(--muted); font-size:14px; margin-top:10px; }
+  .empty-state button { margin-top:14px; min-height:44px; padding:10px 22px; border:1px solid var(--line);
+    border-radius:999px; background:var(--panel); color:var(--ink); font-size:14px; font-weight:600; cursor:pointer; }
   .set-section { margin:0 0 26px; }
   .set-label { font-size:13px; color:var(--muted); margin:0 0 10px; font-weight:600; }
   .seg { display:flex; background:var(--field); border-radius:12px; padding:3px; gap:3px; }
@@ -184,14 +191,50 @@
     display:grid; place-items:center; }
   .mcal-grid button.is-today { box-shadow:inset 0 0 0 1.5px var(--ink); }
   .mcal-grid button.selected { background:var(--inverse); color:var(--inverse-ink); }
+  .mcal-grid button { position:relative; }
+  .mcal-grid button.has-data::after { content:''; position:absolute; left:50%; bottom:5px; transform:translateX(-50%);
+    width:4px; height:4px; border-radius:50%; background:var(--muted); }
+  .mcal-grid button.selected.has-data::after { background:var(--inverse-ink); }
+  #dateLine { cursor:pointer; }
   .toast { position:fixed; left:50%; bottom:calc(24px + env(safe-area-inset-bottom)); z-index:100;
-    transform:translate(-50%,10px); opacity:0; pointer-events:none; white-space:nowrap;
-    border-radius:16px; padding:9px 16px; background:var(--inverse); color:var(--inverse-ink);
-    font-size:13px; font-weight:600; transition:.18s ease; }
-  .toast.show { opacity:1; transform:translate(-50%,0); }
+    transform:translate(-50%,14px); opacity:0; pointer-events:none; white-space:nowrap; overflow:hidden;
+    border-radius:16px; padding:10px 16px 15px; background:var(--inverse); color:var(--inverse-ink);
+    font-size:13px; font-weight:600; transition:transform .35s cubic-bezier(.65,0,.35,1), opacity .35s cubic-bezier(.65,0,.35,1); }
+  .toast.show { opacity:1; transform:translate(-50%,0); transition:transform .35s cubic-bezier(.33,1,.68,1), opacity .35s cubic-bezier(.33,1,.68,1); }
+  /* Motion Prompt #056 · MIT License (c) 2026 Shohei Ohtaki · https://showheyohtaki.github.io/motion-prompt/#056
+     通知列：0.35 秒 easeOutCubic 升入、底部 3px 時間線隨顯示時間（1.8 秒）線性收縮、0.35 秒 easeInOutCubic 滑出。
+     見本為右下角橫滑，本 app 通知列在底部置中，入場改為由下升入，其餘數值照搬。 */
+  .toast .tbar { position:absolute; left:14px; right:14px; bottom:5px; height:3px; border-radius:2px;
+    background:var(--inverse-ink); opacity:.45; transform:scaleX(0); transform-origin:left center; }
+  /* ---- 搜尋 ---- */
+  .search-box { margin-bottom:6px; }
+  .sr-group { font-size:13px; font-weight:700; color:var(--muted); margin:18px 2px 2px; }
+  .sr-row { display:grid; grid-template-columns:1fr auto; align-items:center; gap:4px 14px; width:100%;
+    padding:13px 2px; border-bottom:1px solid var(--line); text-align:left; cursor:pointer; color:var(--ink); }
+  .sr-row .sr-t { font-size:15px; font-weight:550; overflow-wrap:anywhere; }
+  .sr-row .sr-t small { display:block; margin-top:2px; color:var(--muted); font-size:12px; font-weight:500; }
+  .sr-row .sr-side { font-size:15px; font-weight:650; font-variant-numeric:tabular-nums; }
+  .sr-row .sr-side.state { font-size:12px; font-weight:600; color:var(--muted); }
+  /* ---- 觸控目標（規格紙 [TBD] 定案：最小 44px；視覺尺寸屬設計元素嘅掣用 ::after 擴大點擊範圍，唔改外觀） ---- */
+  .weeknav button { min-height:44px; }
+  .mcal-nav { width:44px; height:44px; }
+  .check { position:relative; }
+  .check::after { content:''; position:absolute; inset:-8px; }
+  .defer { position:relative; }
+  .defer::after { content:''; position:absolute; inset:-7px -4px; }
+  .chips button { min-height:44px; padding:10px 16px; display:inline-flex; align-items:center; }
+  .seg button { min-height:44px; }
+  .cat-row button { min-height:44px; padding:10px 12px; display:inline-flex; align-items:center; }
+  .page-head button { min-width:44px; min-height:44px; }
+  .ov-nav button { width:44px; height:44px; }
   /* ---- 過場動畫 ---- */
   @keyframes rowIn { from { opacity:0; transform:translateY(-10px); } }
   .row-enter { animation:rowIn .28s var(--ease-out); }
+  /* Motion Prompt #070 · MIT License (c) 2026 Shohei Ohtaki · https://showheyohtaki.github.io/motion-prompt/#070
+     完成回饋：實心圓連勾自 0.7 彈入至 1（0.25 秒，easeOutCubic）；透明度自 0 至 1（0.2 秒，線性）。數值照見本原規格搬移。 */
+  .row.pop .check { animation:mpPop .25s cubic-bezier(.33,1,.68,1) both, mpPopIn .2s linear both; }
+  @keyframes mpPop { from { transform:scale(.7); } }
+  @keyframes mpPopIn { from { opacity:0; } }
   @keyframes rowOut { to { opacity:0; transform:translateX(-48px); } }
   .row-exit { animation:rowOut .2s ease-in forwards; }
   @keyframes dayIn { from { opacity:0; transform:translateY(12px); } }
@@ -241,6 +284,7 @@
       <button class="date-btn" id="taskDateBtn">今日</button>
       <button class="time-toggle" id="taskTimeToggle">時間</button>
       <span class="time-field" id="timeField"><span class="tv" id="timeLabel">9:00 AM</span><input class="time-input-real" id="taskTime" type="time" value="09:00" aria-label="時間"></span>
+      <button class="time-toggle" id="taskRepToggle">重複：無</button>
       <button class="add-btn" id="taskAdd">+</button>
     </div>
   </section>
@@ -265,6 +309,15 @@
     </div>
   </section>
 
+</div>
+
+<div class="page-overlay" id="searchPage">
+  <div class="page-head">
+    <button id="searchBack" aria-label="返回">‹</button>
+    <h2>搜尋</h2>
+  </div>
+  <div class="search-box"><input class="input" id="searchInput" type="search" placeholder="輸入待辦或支出名稱" autocomplete="off"></div>
+  <div id="searchResults"></div>
 </div>
 
 <div class="sheet-backdrop" id="linkSheet">
@@ -298,6 +351,8 @@
 <div class="sheet-backdrop" id="navSheet">
   <div class="sheet">
     <button class="nav-row" id="navToday">今日<span class="chev">›</span></button>
+    <button class="nav-row" id="navSearch">搜尋<span class="chev">›</span></button>
+    <button class="nav-row" id="navMonth">月曆<span class="chev">›</span></button>
     <button class="nav-row" id="navMonthly">每月支出<span class="chev">›</span></button>
     <button class="nav-row" id="navSettings">設定<span class="chev">›</span></button>
   </div>
@@ -357,6 +412,7 @@
       <div id="editTaskExtra" style="display:grid;gap:10px">
         <div><div class="fld-label">日期</div><input class="input" id="editDate" type="date" style="margin-top:8px"></div>
         <div><div class="fld-label">時間（留空即全日）</div><input class="input" id="editTime" type="time" style="margin-top:8px"></div>
+        <div><div class="fld-label">重複</div><button class="input" id="editRepBtn" style="margin-top:8px;text-align:left;cursor:pointer">無</button></div>
       </div>
       <div id="editExpExtra" style="display:none;gap:10px">
         <div><div class="fld-label">金額</div><input class="input" id="editAmount" inputmode="decimal" style="margin-top:8px"></div>
@@ -372,7 +428,7 @@
   </div>
 </div>
 
-<div class="toast" id="toast"></div>
+<div class="toast" id="toast"><span id="toastMsg"></span><span class="tbar" id="toastBar"></span></div>
 
 <script>
 (function(){
@@ -388,27 +444,27 @@
      資料以絕對日期儲存，跨日重開會自動換算；昨日或之前未做嘅待辦會自動跌入「未完成」池。 */
   var LS_KEY='lifelog-v1';
   var tasks=[], overdue=[], expenses=[];
-  var enterTaskIdx=-1, enterExpIdx=-1; // 啱啱加入／完成嘅列，render 時播進入動畫
+  var enterTaskIdx=-1, enterExpIdx=-1, popTaskIdx=-1; // 啱啱加入／完成嘅列，render 時播進入動畫
   function loadState(){
     var raw=null;
     try{raw=localStorage.getItem(LS_KEY);}catch(e){}
     if(!raw)return;
     try{
       var s=JSON.parse(raw);
-      tasks=(s.tasks||[]).map(function(x){return {t:String(x.t||''),done:!!x.done,off:offFromDateStr(x.date),time:x.time||null};}).filter(function(x){return x.t&&x.off!==null;});
-      overdue=(s.overdue||[]).map(function(x){return {t:String(x.t||''),fromDate:x.fromDate||dateStrFromOff(0)};}).filter(function(x){return x.t;});
+      tasks=(s.tasks||[]).map(function(x){return {t:String(x.t||''),done:!!x.done,off:offFromDateStr(x.date),time:x.time||null,rep:(x.rep==='w'||x.rep==='m')?x.rep:null,rd:(+x.rd>=1&&+x.rd<=31)?+x.rd:null};}).filter(function(x){return x.t&&x.off!==null;});
+      overdue=(s.overdue||[]).map(function(x){return {t:String(x.t||''),fromDate:x.fromDate||dateStrFromOff(0),rep:(x.rep==='w'||x.rep==='m')?x.rep:null,rd:(+x.rd>=1&&+x.rd<=31)?+x.rd:null};}).filter(function(x){return x.t;});
       expenses=(s.expenses||[]).map(function(x){return {t:String(x.t||''),amt:+x.amt||0,cat:x.cat||'其他',off:offFromDateStr(x.date),link:x.link||null};}).filter(function(x){return x.t&&x.off!==null&&x.amt>0;});
     }catch(e){tasks=[];overdue=[];expenses=[];}
     tasks=tasks.filter(function(x){
-      if(!x.done&&x.off<0){overdue.push({t:x.t,fromDate:dateStrFromOff(x.off)});return false;}
+      if(!x.done&&x.off<0){overdue.push({t:x.t,fromDate:dateStrFromOff(x.off),rep:x.rep||null,rd:x.rd||null});return false;}
       return true;
     });
   }
   function saveState(){
     try{
       localStorage.setItem(LS_KEY,JSON.stringify({
-        tasks:tasks.map(function(x){return {t:x.t,done:x.done,date:dateStrFromOff(x.off),time:x.time};}),
-        overdue:overdue.map(function(x){return {t:x.t,fromDate:x.fromDate};}),
+        tasks:tasks.map(function(x){return {t:x.t,done:x.done,date:dateStrFromOff(x.off),time:x.time,rep:x.rep||null,rd:x.rd||null};}),
+        overdue:overdue.map(function(x){return {t:x.t,fromDate:x.fromDate,rep:x.rep||null,rd:x.rd||null};}),
         expenses:expenses.map(function(x){return {t:x.t,amt:x.amt,cat:x.cat,date:dateStrFromOff(x.off),link:x.link};})
       }));
     }catch(e){}
@@ -423,7 +479,22 @@
 
   function $(id){return document.getElementById(id);}
   function esc(s){return String(s).replace(/[&<>'"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c];});}
-  function toast(m){var t=$('toast');t.textContent=m;t.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(function(){t.classList.remove('show');},1500);}
+  function toast(m){
+    var t=$('toast');$('toastMsg').textContent=m;t.classList.add('show');
+    var bar=$('toastBar');
+    bar.style.transition='none';bar.style.transform='scaleX(1)';
+    void bar.offsetWidth;
+    bar.style.transition='transform 1.8s linear';bar.style.transform='scaleX(0)';
+    clearTimeout(toastTimer);toastTimer=setTimeout(function(){t.classList.remove('show');},1800);
+  }
+  var EMPTY_ICONS={
+    task:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="m8.5 12.2 2.4 2.4 4.6-5"/></svg>',
+    exp:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3.5" width="14" height="17" rx="2"/><path d="M9 9h6M9 13h6"/></svg>',
+    search:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4.5 4.5"/></svg>'
+  };
+  function emptyState(kind,msg,btn){
+    return '<div class="empty-state">'+(EMPTY_ICONS[kind]||'')+'<p>'+msg+'</p>'+(btn?'<button data-empty-add="'+kind+'">'+btn+'</button>':'')+'</div>';
+  }
   function dateOf(off){var d=new Date(today);d.setDate(d.getDate()+off);return d;}
   function fmt(d){return (d.getMonth()+1)+'月'+d.getDate()+'日';}
   function hasData(off){return tasks.some(function(x){return x.off===off&&!x.done;})||expenses.some(function(x){return x.off===off;});}
@@ -453,15 +524,15 @@
       if(a.x.time&&b.x.time)return a.x.time<b.x.time?-1:1;
       if(a.x.time)return -1; if(b.x.time)return 1; return 0;
     });
-    $('taskCount').textContent=list.length?('尚有 '+list.length+' 項'):'已全部完成';
+    $('taskCount').textContent=list.length?('尚有 '+list.length+' 項'):(done.length?'已全部完成':'尚有 0 項');
     var html=list.map(function(o){
-      return '<div class="swipe"><div class="row swipe-content'+(o.i===enterTaskIdx?' row-enter':'')+'" data-task="'+o.i+'"><button class="check" aria-label="完成"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="m5 12 4 4L19 6"/></svg></button><div class="label">'+(o.x.time?'<span class="appt-time">'+esc(o.x.time)+'</span>':'')+esc(o.x.t)+'</div></div><span class="swipe-actions" inert><button class="swipe-act edit" data-edit-task="'+o.i+'">編輯</button><button class="swipe-act del" data-del-task="'+o.i+'">刪除</button></span></div>';
+      return '<div class="swipe"><div class="row swipe-content'+(o.i===enterTaskIdx?' row-enter':'')+'" data-task="'+o.i+'"><button class="check" aria-label="完成"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="m5 12 4 4L19 6"/></svg></button><div class="label">'+(o.x.time?'<span class="appt-time">'+esc(o.x.time)+'</span>':'')+esc(o.x.t)+(o.x.rep?'<span class=\"linked\">'+(o.x.rep==='w'?'每週':'每月')+'</span>':'')+'</div></div><span class="swipe-actions" inert><button class="swipe-act edit" data-edit-task="'+o.i+'">編輯</button><button class="swipe-act del" data-del-task="'+o.i+'">刪除</button></span></div>';
     }).join('');
-    if(!all.length)html='<div style="padding:16px 0;color:var(--muted)">本日尚無待辦事項。</div>';
+    if(!all.length)html=emptyState('task','本日尚無待辦事項。','新增待辦');
     if(done.length){
       html+='<div class="group-label">已完成（'+done.length+'）</div>';
       html+=done.map(function(o){
-        return '<div class="swipe"><div class="row done swipe-content'+(o.i===enterTaskIdx?' row-enter':'')+'" data-task="'+o.i+'" data-done="1"><button class="check" aria-label="重新開啟"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="m5 12 4 4L19 6"/></svg></button><div class="label">'+(o.x.time?'<span class="appt-time">'+esc(o.x.time)+'</span>':'')+esc(o.x.t)+'</div></div><span class="swipe-actions" inert><button class="swipe-act edit" data-edit-task="'+o.i+'">編輯</button><button class="swipe-act del" data-del-task="'+o.i+'">刪除</button></span></div>';
+        return '<div class="swipe"><div class="row done swipe-content'+(o.i===enterTaskIdx?' row-enter':'')+(o.i===popTaskIdx?' pop':'')+'" data-task="'+o.i+'" data-done="1"><button class="check" aria-label="重新開啟"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="m5 12 4 4L19 6"/></svg></button><div class="label">'+(o.x.time?'<span class="appt-time">'+esc(o.x.time)+'</span>':'')+esc(o.x.t)+(o.x.rep?'<span class=\"linked\">'+(o.x.rep==='w'?'每週':'每月')+'</span>':'')+'</div></div><span class="swipe-actions" inert><button class="swipe-act edit" data-edit-task="'+o.i+'">編輯</button><button class="swipe-act del" data-del-task="'+o.i+'">刪除</button></span></div>';
       }).join('');
     }
     $('taskList').innerHTML=html;
@@ -472,7 +543,7 @@
     b.style.display='';
     $('overdueCount').textContent=overdue.length+' 項逾期';
     $('overdueList').innerHTML=overdue.map(function(x,i){
-      return '<div class="swipe"><div class="row swipe-content"><div></div><div class="label">'+esc(x.t)+'<small>原定 '+esc(overdueLabel(x.fromDate))+'</small></div><button class="defer" data-defer="'+i+'">移至今日</button></div><span class="swipe-actions" inert><button class="swipe-act edit" data-edit-over="'+i+'">編輯</button><button class="swipe-act del" data-del-over="'+i+'">刪除</button></span></div>';
+      return '<div class="swipe"><div class="row swipe-content"><div></div><div class="label">'+esc(x.t)+(x.rep?'<span class=\"linked\">'+(x.rep==='w'?'每週':'每月')+'</span>':'')+'<small>原定 '+esc(overdueLabel(x.fromDate))+'</small></div><button class="defer" data-defer="'+i+'">移至今日</button></div><span class="swipe-actions" inert><button class="swipe-act edit" data-edit-over="'+i+'">編輯</button><button class="swipe-act del" data-del-over="'+i+'">刪除</button></span></div>';
     }).join('');
   }
   function renderExpenses(){
@@ -481,7 +552,7 @@
     countUp($('spendTotal'),total);
     $('expenseList').innerHTML=list.slice().reverse().map(function(o){var x=o.x;
       return '<div class="swipe"><div class="exp-row swipe-content'+(o.i===enterExpIdx?' row-enter':'')+'"><div>'+esc(x.t)+(x.link?'<span class="linked">↳ '+esc(x.link)+'</span>':'')+'<small>'+esc(x.cat||'其他')+'</small></div><div class="amt">$'+x.amt+'</div></div><span class="swipe-actions" inert><button class="swipe-act edit" data-edit-exp="'+o.i+'">編輯</button><button class="swipe-act del" data-del-exp="'+o.i+'">刪除</button></span></div>';
-    }).join('')||'<div style="padding:16px 0;color:var(--muted)">本日尚無支出記錄。</div>';
+    }).join('')||emptyState('exp','本日尚無支出記錄。','記一筆支出');
   }
   function fmtAmt(v){return '$'+(v%1?v.toFixed(1):Math.round(v));}
   function countUp(el,to){
@@ -501,7 +572,8 @@
     var w=document.querySelector('.wrap');
     w.classList.remove('day-swap');void w.offsetWidth;w.classList.add('day-swap');
   }
-  function renderAll(){renderWeek();renderTasks();renderOverdue();renderExpenses();saveState();enterTaskIdx=-1;enterExpIdx=-1;}
+  function renderAll(){renderWeek();renderTasks();renderOverdue();renderExpenses();saveState();enterTaskIdx=-1;enterExpIdx=-1;popTaskIdx=-1;}
+  function gotoDay(off){selOffset=off;stripBase=mondayOf(dateOf(off));$('taskComposer').style.display='none';$('expComposer').style.display='none';renderAll();daySwap();window.scrollTo({top:0,behavior:'smooth'});}
 
   $('weekStrip').addEventListener('click',function(e){
     var c=e.target.closest('[data-off]');if(!c)return;
@@ -517,12 +589,13 @@
     renderAll();daySwap();window.scrollTo({top:0,behavior:'smooth'});
   });
 
-  var viewY, viewM;
+  var viewY, viewM, monthNav=false;
   // 新增列目標日期（同而家睇緊嗰日分開）：揀日期只記低，唔即時跳頁；撳「＋」嗰下先跳過去
   var composerOff=null;
   function pickTarget(){return ($('taskComposer').style.display!=='none'&&composerOff!==null)?composerOff:selOffset;}
   function renderComposerDate(){var off=pickTarget();$('taskDateBtn').textContent=off===0?'今日':fmt(dateOf(off));}
   function openMonth(){var d=dateOf(pickTarget());viewY=d.getFullYear();viewM=d.getMonth();renderMonth();$('monthSheet').classList.add('open');}
+  function openMonthNav(){monthNav=true;var d=dateOf(selOffset);viewY=d.getFullYear();viewM=d.getMonth();renderMonth();$('monthSheet').classList.add('open');}
   function renderMonth(){
     $('mcalLabel').textContent=viewY+'年'+(viewM+1)+'月';
     var first=new Date(viewY,viewM,1), startIdx=(first.getDay()+6)%7, days=new Date(viewY,viewM+1,0).getDate();
@@ -530,7 +603,7 @@
     for(var i=0;i<startIdx;i++)html+='<span></span>';
     for(var d=1;d<=days;d++){
       var off=Math.round((new Date(viewY,viewM,d)-today)/86400000);
-      html+='<button data-moff="'+off+'" class="'+(off===0?'is-today ':'')+(off===pickTarget()?'selected':'')+'">'+d+'</button>';
+      html+='<button data-moff="'+off+'" class="'+(off===0?'is-today ':'')+(off===pickTarget()?'selected':'')+(hasData(off)?' has-data':'')+'">'+d+'</button>';
     }
     $('mcalGrid').innerHTML=html;
   }
@@ -539,7 +612,9 @@
   $('mcalNext').addEventListener('click',function(){viewM++;if(viewM>11){viewM=0;viewY++;}renderMonth();});
   $('mcalGrid').addEventListener('click',function(e){
     var b=e.target.closest('[data-moff]');if(!b)return;
-    composerOff=+b.dataset.moff;$('monthSheet').classList.remove('open');
+    var off=+b.dataset.moff;$('monthSheet').classList.remove('open');
+    if(monthNav){monthNav=false;gotoDay(off);return;}
+    composerOff=off;
     renderComposerDate();
   });
   $('monthSheet').addEventListener('click',function(e){if(e.target===this)this.classList.remove('open');});
@@ -549,9 +624,35 @@
   $('navSettings').addEventListener('click',function(){$('navSheet').classList.remove('open');$('settingsPage').classList.add('open');});
   $('settingsBack').addEventListener('click',function(){$('settingsPage').classList.remove('open');});
   $('navMonthly').addEventListener('click',function(){$('navSheet').classList.remove('open');ovY=today.getFullYear();ovM=today.getMonth();renderMonthly();$('monthlyPage').classList.add('open');});
+  $('navMonth').addEventListener('click',function(){$('navSheet').classList.remove('open');openMonthNav();});
+  $('dateLine').addEventListener('click',openMonthNav);
+  function renderSearch(){
+    var q=$('searchInput').value.trim().toLowerCase(), box=$('searchResults');
+    if(!q){box.innerHTML='<div class="page-empty">輸入關鍵字，搜尋所有待辦與支出。</div>';return;}
+    function hit(t){return String(t||'').toLowerCase().indexOf(q)>-1;}
+    var th=tasks.filter(function(x){return hit(x.t);}).sort(function(a,b){return b.off-a.off;});
+    var oh=overdue.filter(function(x){return hit(x.t);});
+    var eh=expenses.filter(function(x){return hit(x.t)||hit(x.cat);}).sort(function(a,b){return b.off-a.off;});
+    if(!th.length&&!oh.length&&!eh.length){box.innerHTML=emptyState('search','找不到相關記錄。');return;}
+    var html='';
+    if(th.length||oh.length){
+      html+='<h3 class="sr-group">待辦</h3>';
+      th.forEach(function(x){html+='<button class="sr-row" data-sr-off="'+x.off+'"><span class="sr-t">'+esc(x.t)+'<small>'+fmt(dateOf(x.off))+(x.time?' · '+esc(x.time):'')+'</small></span><span class="sr-side state">'+(x.done?'已完成':'未完成')+'</span></button>';});
+      oh.forEach(function(x){html+='<button class="sr-row" data-sr-off="0"><span class="sr-t">'+esc(x.t)+'<small>未完成 · 原定 '+esc(overdueLabel(x.fromDate))+'</small></span><span class="sr-side state">未完成</span></button>';});
+    }
+    if(eh.length){
+      html+='<h3 class="sr-group">支出</h3>';
+      eh.forEach(function(x){html+='<button class="sr-row" data-sr-off="'+x.off+'"><span class="sr-t">'+esc(x.t)+'<small>'+fmt(dateOf(x.off))+' · '+esc(x.cat||'其他')+'</small></span><span class="sr-side">$'+x.amt+'</span></button>';});
+    }
+    box.innerHTML=html;
+  }
+  $('navSearch').addEventListener('click',function(){$('navSheet').classList.remove('open');$('searchPage').classList.add('open');renderSearch();setTimeout(function(){$('searchInput').focus();},250);});
+  $('searchBack').addEventListener('click',function(){$('searchPage').classList.remove('open');});
+  $('searchInput').addEventListener('input',renderSearch);
+  $('searchResults').addEventListener('click',function(e){var b=e.target.closest('[data-sr-off]');if(!b)return;$('searchPage').classList.remove('open');gotoDay(+b.dataset.srOff);});
   $('monthlyBack').addEventListener('click',function(){$('monthlyPage').classList.remove('open');});
 
-  var editTarget=null;
+  var editTarget=null, editRepVal=null;
   function pad2(n){return String(n).padStart(2,'0');}
   function dateStrFromOff(off){var d=dateOf(off);return d.getFullYear()+'-'+pad2(d.getMonth()+1)+'-'+pad2(d.getDate());}
   function offFromDateStr(s){var p=String(s||'').split('-');if(p.length<3||!+p[0])return null;var d=new Date(+p[0],+p[1]-1,+p[2]);d.setHours(0,0,0,0);return Math.round((d-today)/86400000);}
@@ -571,6 +672,7 @@
       $('editName').value=t.t;
       $('editDate').value=dateStrFromOff(t.off);
       $('editTime').value=t.time||'';
+      editRepVal=t.rep||null;$('editRepBtn').textContent=repLabel(editRepVal);
     }else{
       $('editName').value=overdue[index].t;
       $('editTaskExtra').style.display='none';
@@ -589,6 +691,9 @@
       var name=$('editName').value.trim();if(!name){toast('請輸入名稱');return;}
       var off=offFromDateStr($('editDate').value);if(off===null){toast('請選擇日期');return;}
       tasks[i].t=name;tasks[i].off=off;tasks[i].time=$('editTime').value||null;
+      var oldRd=tasks[i].rd;
+      tasks[i].rep=editRepVal;
+      tasks[i].rd=editRepVal==='m'?(oldRd||dateOf(off).getDate()):null;
     }else{
       var nm=$('editName').value.trim();if(!nm){toast('請輸入名稱');return;}
       overdue[i].t=nm;
@@ -597,6 +702,7 @@
   }
   $('editSave').addEventListener('click',saveEdit);
   $('editCancel').addEventListener('click',function(){editTarget=null;$('editSheet').classList.remove('open');});
+  $('editRepBtn').addEventListener('click',function(){editRepVal=editRepVal===null?'w':(editRepVal==='w'?'m':null);this.textContent=repLabel(editRepVal);});
   $('editSheet').addEventListener('click',function(e){if(e.target===this){editTarget=null;this.classList.remove('open');}});
   $('editChips').addEventListener('click',function(e){
     var b=e.target.closest('button');if(!b)return;
@@ -647,6 +753,7 @@
 
   $('taskList').addEventListener('click',function(e){
     var sc=e.target.closest('.swipe-content');if(sc&&sc.dataset.swiped)return;
+    var ea=e.target.closest('[data-empty-add]');if(ea){toggleComposer('task');return;}
     var del=e.target.closest('[data-del-task]');
     if(del){
       var di=+del.dataset.delTask,swEl=del.closest('.swipe');
@@ -670,14 +777,33 @@
     Array.prototype.forEach.call(this.children,function(c){c.classList.remove('on');});
     b.classList.add('on');
   });
+  /* 重複待辦：完成一期即開下一期。每週＝＋7 日；每月＝下個月同一日，
+     日數以建立時嘅日子為錨（rd），月尾自動收至該月最後一日（1月31日→2月28日→3月31日，唔會漂移）。 */
+  function nextRepOff(x){
+    if(x.rep==='w')return x.off+7;
+    if(x.rep==='m'){
+      var d=dateOf(x.off), anchor=x.rd||d.getDate();
+      var y=d.getFullYear(), m=d.getMonth()+1; if(m>11){m=0;y++;}
+      var nd=new Date(y,m,Math.min(anchor,new Date(y,m+1,0).getDate())); nd.setHours(0,0,0,0);
+      return Math.round((nd-today)/86400000);
+    }
+    return null;
+  }
   function finishTask(withSpend){
     var t=tasks[pendingLink];t.done=true;
+    if(t.rep){
+      var noff=nextRepOff(t);
+      if(noff!==null&&!tasks.some(function(y){return !y.done&&y.t===t.t&&y.rep===t.rep&&y.off===noff;})){
+        tasks.push({t:t.t,done:false,off:noff,time:t.time,rep:t.rep,rd:t.rd||null});
+      }
+    }
     if(withSpend){
       var amt=parseFloat($('linkAmt').value);
       var chip=$('linkChips').querySelector('.on');
       if(amt>0){expenses.push({t:t.t,amt:amt,link:'完成時記錄',cat:chip?chip.textContent:'其他',off:0});toast('已完成，並記錄支出 $'+amt);}
       else toast('已完成');
     } else toast('已完成');
+    popTaskIdx=pendingLink;
     enterTaskIdx=pendingLink;
     pendingLink=null;$('linkSheet').classList.remove('open');
     renderAll();
@@ -701,7 +827,7 @@
     var df=+b.dataset.defer,swEl3=b.closest('.swipe');
     var doDefer=function(){
       var x=overdue.splice(df,1)[0];
-      tasks.push({t:x.t,done:false,off:0,time:null});
+      tasks.push({t:x.t,done:false,off:0,time:null,rep:x.rep||null,rd:x.rd||null});
       enterTaskIdx=tasks.length-1;
       renderAll();toast('已移至今日待辦');
     };
@@ -710,13 +836,14 @@
 
   function toggleComposer(which){
     var tc=$('taskComposer'),ec=$('expComposer');
-    if(which==='task'){var open=tc.style.display==='none';tc.style.display=open?'flex':'none';ec.style.display='none';if(open){composerOff=selOffset;renderComposerDate();$('taskInput').focus();}}
+    if(which==='task'){var open=tc.style.display==='none';tc.style.display=open?'flex':'none';ec.style.display='none';if(open){composerOff=selOffset;composerRep=null;syncRepToggle();renderComposerDate();$('taskInput').focus();}}
     else{var open2=ec.style.display==='none';ec.style.display=open2?'flex':'none';tc.style.display='none';if(open2)$('expTitle').focus();}
   }
   $('qaTask').addEventListener('click',function(){toggleComposer('task');});
   $('qaSpend').addEventListener('click',function(){toggleComposer('spend');});
   $('expenseList').addEventListener('click',function(e){
     var sc=e.target.closest('.swipe-content');if(sc&&sc.dataset.swiped)return;
+    var ea=e.target.closest('[data-empty-add]');if(ea){toggleComposer('spend');return;}
     var del=e.target.closest('[data-del-exp]');
     if(del){
       var di3=+del.dataset.delExp,swEl4=del.closest('.swipe');
@@ -729,9 +856,9 @@
   function addTask(){var v=$('taskInput').value.trim();if(!v)return;
     var useTime=$('taskComposer').classList.contains('show-time');
     var off=composerOff===null?selOffset:composerOff;
-    tasks.push({t:v,done:false,off:off,time:useTime?($('taskTime').value||null):null});
+    tasks.push({t:v,done:false,off:off,time:useTime?($('taskTime').value||null):null,rep:composerRep,rd:composerRep==='m'?dateOf(off).getDate():null});
     enterTaskIdx=tasks.length-1;
-    $('taskInput').value='';composerOff=null;
+    $('taskInput').value='';composerOff=null;composerRep=null;syncRepToggle();
     var jumped=false;
     if(off!==selOffset){selOffset=off;stripBase=mondayOf(dateOf(selOffset));jumped=true;}
     renderAll();if(jumped){daySwap();window.scrollTo({top:0,behavior:'smooth'});}toast('已加入待辦');}
@@ -740,6 +867,10 @@
   $('taskTimeToggle').addEventListener('click',function(){
     var c=$('taskComposer');c.classList.toggle('show-time');this.classList.toggle('on',c.classList.contains('show-time'));
   });
+  var composerRep=null;
+  function repLabel(r){return r==='w'?'每週':(r==='m'?'每月':'無');}
+  function syncRepToggle(){$('taskRepToggle').textContent='重複：'+repLabel(composerRep);$('taskRepToggle').classList.toggle('on',!!composerRep);}
+  $('taskRepToggle').addEventListener('click',function(){composerRep=composerRep===null?'w':(composerRep==='w'?'m':null);syncRepToggle();});
   function fmtTime(v){var p=String(v||'').split(':'),h=+p[0],m=p[1]||'00';if(isNaN(h))return '';var ap=h>=12?'PM':'AM';h=h%12||12;return h+':'+m+' '+ap;}
   $('taskTime').addEventListener('change',function(){$('timeLabel').textContent=fmtTime(this.value)||'--:--';});
   function addExpense(){var t=$('expTitle').value.trim(),a=parseFloat($('expAmt').value);if(!t||!(a>0)){toast('請輸入項目及金額');return;}var chip=$('expChips').querySelector('.on');expenses.push({t:t,amt:a,cat:chip?chip.textContent:'其他',off:selOffset});enterExpIdx=expenses.length-1;$('expTitle').value='';$('expAmt').value='';$('expChips').style.display='none';renderAll();toast('已記錄支出 $'+a);}
@@ -859,7 +990,7 @@
     var list=expenses.filter(function(x){var d=dateOf(x.off);return d.getFullYear()===ovY&&d.getMonth()===ovM;});
     var total=list.reduce(function(s,x){return s+x.amt;},0);
     $('ovTotal').textContent=fmtAmt(total);
-    if(!list.length){$('ovMeta').textContent='';$('ovCats').innerHTML='';$('ovList').innerHTML='<div style="padding:16px 0;color:var(--muted)">本月尚無支出記錄。</div>';return;}
+    if(!list.length){$('ovMeta').textContent='';$('ovCats').innerHTML='';$('ovList').innerHTML=emptyState('exp','本月尚無支出記錄。');return;}
     var daysInMonth=new Date(ovY,ovM+1,0).getDate();
     var elapsed=(ovY===today.getFullYear()&&ovM===today.getMonth())?today.getDate():daysInMonth;
     $('ovMeta').textContent=list.length+' 筆 · 日均 '+fmtAmt(total/Math.max(1,elapsed));
@@ -883,15 +1014,32 @@
   $('ovPrev').addEventListener('click',function(){ovM--;if(ovM<0){ovM=11;ovY--;}renderMonthly();});
   $('ovNext').addEventListener('click',function(){ovM++;if(ovM>11){ovM=0;ovY++;}renderMonthly();});
 
-  /* ---- 捷徑快速記帳：讀網址參數 ?amt=金額&name=商戶，預填支出表單 ----
-     由捷徑「交易」自動化開出；讀完即清走參數，重整不會重複觸發；
-     入帳仍要使用者按＋核對，等於防重複的最後一關。 */
+  /* ---- 捷徑快速加入：讀網址參數預填表單 ----
+     支出：?amt=金額&name=商戶（捷徑「交易」自動化）；待辦：?task=名稱&off=日偏移（0=今日，可省略）。
+     讀完即清走參數，重整不會重複觸發；入帳／加入仍要使用者按＋核對，等於防重複的最後一關。
+     兩種參數同時出現時以待辦優先。 */
   function quickAddFromUrl(){
     var q;
     try{q=new URLSearchParams(location.search);}catch(e){return;}
-    var rawAmt=q.get('amt'), rawName=q.get('name');
-    if(rawAmt===null&&rawName===null)return;
+    var rawAmt=q.get('amt'), rawName=q.get('name'), rawTask=q.get('task');
+    if(rawAmt===null&&rawName===null&&rawTask===null)return;
     try{history.replaceState(null,'',location.pathname+location.hash);}catch(e){}
+    if(rawTask!==null){
+      var tname=String(rawTask).trim().slice(0,100);
+      if(tname){
+        var toff=0, rawOff=q.get('off');
+        if(rawOff!==null){var ov2=parseInt(rawOff,10);if(isFinite(ov2))toff=Math.max(-3650,Math.min(3650,ov2));}
+        selOffset=toff;stripBase=mondayOf(dateOf(toff));
+        $('expComposer').style.display='none';
+        $('taskComposer').style.display='flex';
+        composerOff=toff;renderAll();
+        $('taskInput').value=tname;
+        try{$('taskComposer').scrollIntoView({behavior:'smooth',block:'center'});}catch(e){}
+        $('taskInput').focus();
+        toast('已帶入待辦，請核對後加入');
+      }
+      return;
+    }
     var amt=null;
     if(rawAmt!==null&&String(rawAmt).indexOf('-')<0){
       var v=parseFloat(String(rawAmt).replace(/[^0-9.]/g,''));
