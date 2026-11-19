@@ -87,9 +87,9 @@
   .day-cell.is-today .dn { box-shadow:inset 0 0 0 1.5px var(--ink); }
   .day-cell.selected { background:var(--panel); }
   .day-cell.selected .dn { background:var(--inverse); color:var(--inverse-ink); box-shadow:none; }
-  .quickbar { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin:14px 0 20px; }
+  .quickbar { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin:14px 0 20px; }
   .quickbar button { min-height:64px; border-radius:var(--radius); background:var(--panel);
-    font-size:18px; font-weight:700; 
+    font-size:16px; font-weight:700; white-space:nowrap; 
     display:flex; align-items:center; justify-content:center; gap:8px; }
   .quickbar button span.plus { width:30px; height:30px; border-radius:50%; background:var(--inverse);
     color:var(--inverse-ink); display:grid; place-items:center; font-size:20px; font-weight:400; }
@@ -261,6 +261,12 @@
   .bd-head .bd-pct { color:var(--muted); font-size:12px; font-weight:600; margin-left:6px; }
   .bd-bar { height:8px; background:var(--field); border-radius:4px; margin-top:6px; overflow:hidden; }
   .bd-fill { height:100%; background:var(--ink); border-radius:4px; }
+  .budget-line { margin:12px 2px 0; }
+  .budget-meta { display:flex; justify-content:space-between; gap:10px; font-size:14px; font-weight:600; color:var(--muted); }
+  .budget-meta b { color:var(--ink); }
+  #ovBudget .budget-meta { margin-top:14px; }
+  .cat-add select { flex:1; border:0; border-radius:12px; background:var(--field); color:var(--ink); padding:12px 14px; font-size:16px; }
+  .cat-add input { min-width:0; }
   .ov-day { margin:16px 0 4px; color:var(--muted); font-size:12px; font-weight:700; letter-spacing:.04em; }
 </style>
 </head>
@@ -281,6 +287,7 @@
   <div class="quickbar">
     <button id="qaTask"><span class="plus">+</span>新增待辦</button>
     <button id="qaSpend"><span class="plus">+</span>記支出</button>
+    <button id="qaJournal"><span class="plus">+</span>寫日記</button>
   </div>
 
   <section class="block">
@@ -304,6 +311,8 @@
   <section class="block">
     <div class="block-head"><h2 id="spendHead">今日支出</h2><span class="count">HKD</span></div>
     <div class="spend-hero"><small>本日總支出</small><strong id="spendTotal">$0</strong></div>
+    <div class="budget-line" id="budgetLine" style="display:none"></div>
+    <div class="chips" id="quickExpRow" style="display:none;margin:10px 0 0"></div>
     <div class="card" id="expenseList"></div>
     <div class="composer" id="expComposer" style="display:none">
       <input id="expTitle" placeholder="例如：午餐" style="flex:2">
@@ -313,6 +322,15 @@
       <div class="chips" id="expChips" style="flex:1 1 100%;margin:2px 0 0;display:none">
         <button>餐飲</button><button>交通</button><button>購物</button><button class="on">其他</button>
       </div>
+    </div>
+  </section>
+
+  <section class="block">
+    <div class="block-head"><h2>日記</h2><span class="count" id="journalCount"></span></div>
+    <div class="card" id="journalList"></div>
+    <div class="composer" id="journalComposer" style="display:none">
+      <input id="journalInput" placeholder="諗到嘢，打一句…" enterkeyhint="done" maxlength="140">
+      <button class="add-btn" id="journalAdd">+</button>
     </div>
   </section>
 
@@ -387,11 +405,32 @@
     </div>
   </div>
   <div class="set-section">
+    <div class="set-label">常用支出</div>
+    <div id="qeList"></div>
+    <div class="cat-add">
+      <input id="qeName" placeholder="名稱（例：午餐）" maxlength="12" style="flex:1.3">
+      <input id="qeAmt" placeholder="金額" inputmode="decimal" style="flex:1">
+      <button id="qeAdd">新增</button>
+    </div>
+    <div class="cat-add">
+      <select id="qeCat" aria-label="分類"></select>
+    </div>
+    <p class="set-note">設定後，日頁支出區會出現快掣，㩒一下即入帳。</p>
+  </div>
+  <div class="set-section">
+    <div class="set-label">每月預算</div>
+    <div class="cat-add">
+      <input id="budgetInput" placeholder="例如：6000" inputmode="decimal">
+      <button id="budgetSave">儲存</button>
+    </div>
+    <p class="set-note" id="budgetNote">未設定預算。設定後，日頁同每月總覽會顯示本月進度。</p>
+  </div>
+  <div class="set-section">
     <div class="set-label">資料</div>
     <button class="set-btn" id="exportBtn">匯出備份</button>
     <button class="set-btn" id="importBtn" style="margin-top:10px;background:var(--panel);color:var(--ink);border:1px solid var(--line)">匯入備份</button>
     <input type="file" id="importFile" accept=".json,application/json" style="display:none">
-    <p class="set-note">匯出所有待辦同支出做 JSON 檔案，保存在手機。匯入會以備份覆蓋現有資料。</p>
+    <p class="set-note">匯出所有待辦、支出、日記同設定做 JSON 檔案，保存在手機。匯入會以備份覆蓋現有資料。</p>
   </div>
 </div>
 
@@ -407,6 +446,7 @@
   </div>
   <div class="spend-hero"><small>本月總支出</small><strong id="ovTotal">$0</strong></div>
   <p class="ov-meta" id="ovMeta"></p>
+  <div id="ovBudget"></div>
   <div id="ovCats"></div>
   <div id="ovList"></div>
 </div>
@@ -451,6 +491,7 @@
      資料以絕對日期儲存，跨日重開會自動換算；昨日或之前未做嘅待辦會自動跌入「未完成」池。 */
   var LS_KEY='lifelog-v1';
   var tasks=[], overdue=[], expenses=[];
+  var quickExp=[], journal=[], budget=null;
   var enterTaskIdx=-1, enterExpIdx=-1, popTaskIdx=-1; // 啱啱加入／完成嘅列，render 時播進入動畫
   function loadState(){
     var raw=null;
@@ -461,7 +502,10 @@
       tasks=(s.tasks||[]).map(function(x){return {t:String(x.t||''),done:!!x.done,off:offFromDateStr(x.date),time:x.time||null,rep:(x.rep==='w'||x.rep==='m')?x.rep:null,rd:(+x.rd>=1&&+x.rd<=31)?+x.rd:null};}).filter(function(x){return x.t&&x.off!==null;});
       overdue=(s.overdue||[]).map(function(x){return {t:String(x.t||''),fromDate:x.fromDate||dateStrFromOff(0),rep:(x.rep==='w'||x.rep==='m')?x.rep:null,rd:(+x.rd>=1&&+x.rd<=31)?+x.rd:null};}).filter(function(x){return x.t;});
       expenses=(s.expenses||[]).map(function(x){return {t:String(x.t||''),amt:+x.amt||0,cat:x.cat||'其他',off:offFromDateStr(x.date),link:x.link||null};}).filter(function(x){return x.t&&x.off!==null&&x.amt>0;});
-    }catch(e){tasks=[];overdue=[];expenses=[];}
+      quickExp=(s.quick||[]).map(function(x){return {t:String(x.t||''),amt:+x.amt||0,cat:x.cat||'其他'};}).filter(function(x){return x.t&&x.amt>0;});
+      journal=(s.journal||[]).map(function(x){return {t:String(x.t||''),off:offFromDateStr(x.date),time:x.time||''};}).filter(function(x){return x.t&&x.off!==null;});
+      budget=(+s.budget>0)?+s.budget:null;
+    }catch(e){tasks=[];overdue=[];expenses=[];quickExp=[];journal=[];budget=null;}
     tasks=tasks.filter(function(x){
       if(!x.done&&x.off<0){overdue.push({t:x.t,fromDate:dateStrFromOff(x.off),rep:x.rep||null,rd:x.rd||null});return false;}
       return true;
@@ -472,7 +516,10 @@
       localStorage.setItem(LS_KEY,JSON.stringify({
         tasks:tasks.map(function(x){return {t:x.t,done:x.done,date:dateStrFromOff(x.off),time:x.time,rep:x.rep||null,rd:x.rd||null};}),
         overdue:overdue.map(function(x){return {t:x.t,fromDate:x.fromDate,rep:x.rep||null,rd:x.rd||null};}),
-        expenses:expenses.map(function(x){return {t:x.t,amt:x.amt,cat:x.cat,date:dateStrFromOff(x.off),link:x.link};})
+        expenses:expenses.map(function(x){return {t:x.t,amt:x.amt,cat:x.cat,date:dateStrFromOff(x.off),link:x.link};}),
+        quick:quickExp.map(function(x){return {t:x.t,amt:x.amt,cat:x.cat};}),
+        journal:journal.map(function(x){return {t:x.t,date:dateStrFromOff(x.off),time:x.time};}),
+        budget:budget
       }));
     }catch(e){}
   }
@@ -508,6 +555,7 @@
   var EMPTY_ICONS={
     task:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="m8.5 12.2 2.4 2.4 4.6-5"/></svg>',
     exp:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3.5" width="14" height="17" rx="2"/><path d="M9 9h6M9 13h6"/></svg>',
+    journal:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6.5C10.5 5 8.5 4.5 5.5 4.5v13c3 0 5 .5 6.5 2 1.5-1.5 3.5-2 6.5-2v-13c-3 0-5 .5-6.5 2z"/><path d="M12 6.5v13"/></svg>',
     search:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4.5 4.5"/></svg>'
   };
   function emptyState(kind,msg,btn){
@@ -515,7 +563,7 @@
   }
   function dateOf(off){var d=new Date(today);d.setDate(d.getDate()+off);return d;}
   function fmt(d){return (d.getMonth()+1)+'月'+d.getDate()+'日';}
-  function hasData(off){return tasks.some(function(x){return x.off===off&&!x.done;})||expenses.some(function(x){return x.off===off;});}
+  function hasData(off){return tasks.some(function(x){return x.off===off&&!x.done;})||expenses.some(function(x){return x.off===off;})||journal.some(function(x){return x.off===off;});}
 
   function renderWeek(){
     var base=new Date(stripBase);
@@ -590,12 +638,12 @@
     var w=document.querySelector('.wrap');
     w.classList.remove('day-swap');void w.offsetWidth;w.classList.add('day-swap');
   }
-  function renderAll(){renderWeek();renderTasks();renderOverdue();renderExpenses();saveState();enterTaskIdx=-1;enterExpIdx=-1;popTaskIdx=-1;}
-  function gotoDay(off){selOffset=off;stripBase=mondayOf(dateOf(off));$('taskComposer').style.display='none';$('expComposer').style.display='none';renderAll();daySwap();window.scrollTo({top:0,behavior:'smooth'});}
+  function renderAll(){renderWeek();renderTasks();renderOverdue();renderExpenses();renderQuickExp();renderBudgetLine();renderJournal();saveState();enterTaskIdx=-1;enterExpIdx=-1;popTaskIdx=-1;}
+  function gotoDay(off){selOffset=off;stripBase=mondayOf(dateOf(off));$('taskComposer').style.display='none';$('expComposer').style.display='none';$('journalComposer').style.display='none';renderAll();daySwap();window.scrollTo({top:0,behavior:'smooth'});}
 
   $('weekStrip').addEventListener('click',function(e){
     var c=e.target.closest('[data-off]');if(!c)return;
-    selOffset=+c.dataset.off;$('taskComposer').style.display='none';$('expComposer').style.display='none';
+    selOffset=+c.dataset.off;$('taskComposer').style.display='none';$('expComposer').style.display='none';$('journalComposer').style.display='none';
     renderAll();daySwap();window.scrollTo({top:0,behavior:'smooth'});
   });
 
@@ -603,7 +651,7 @@
   $('weekNext').addEventListener('click',function(){stripBase.setDate(stripBase.getDate()+7);renderWeek();});
   $('weekToday').addEventListener('click',function(){
     selOffset=0;stripBase=mondayOf(today);
-    $('taskComposer').style.display='none';$('expComposer').style.display='none';
+    $('taskComposer').style.display='none';$('expComposer').style.display='none';$('journalComposer').style.display='none';
     renderAll();daySwap();window.scrollTo({top:0,behavior:'smooth'});
   });
 
@@ -890,12 +938,14 @@
   });
 
   function toggleComposer(which){
-    var tc=$('taskComposer'),ec=$('expComposer');
-    if(which==='task'){var open=tc.style.display==='none';tc.style.display=open?'flex':'none';ec.style.display='none';if(open){composerOff=selOffset;composerRep=null;syncRepToggle();renderComposerDate();$('taskInput').focus();}}
-    else{var open2=ec.style.display==='none';ec.style.display=open2?'flex':'none';tc.style.display='none';if(open2)$('expTitle').focus();}
+    var tc=$('taskComposer'),ec=$('expComposer'),jc=$('journalComposer');
+    if(which==='task'){var open=tc.style.display==='none';tc.style.display=open?'flex':'none';ec.style.display='none';jc.style.display='none';if(open){composerOff=selOffset;composerRep=null;syncRepToggle();renderComposerDate();$('taskInput').focus();}}
+    else if(which==='journal'){var openJ=jc.style.display==='none';jc.style.display=openJ?'flex':'none';tc.style.display='none';ec.style.display='none';if(openJ)$('journalInput').focus();}
+    else{var open2=ec.style.display==='none';ec.style.display=open2?'flex':'none';tc.style.display='none';jc.style.display='none';if(open2)$('expTitle').focus();}
   }
   $('qaTask').addEventListener('click',function(){toggleComposer('task');});
   $('qaSpend').addEventListener('click',function(){toggleComposer('spend');});
+  $('qaJournal').addEventListener('click',function(){toggleComposer('journal');});
   $('expenseList').addEventListener('click',function(e){
     var sc=e.target.closest('.swipe-content');if(sc&&sc.dataset.swiped)return;
     var ea=e.target.closest('[data-empty-add]');if(ea){toggleComposer('spend');return;}
@@ -942,6 +992,78 @@
   $('expAdd').addEventListener('click',addExpense);
   $('expAmt').addEventListener('keydown',function(e){if(e.key==='Enter')addExpense();});
 
+  /* ---- 常用支出快掣／每月預算／日記 ---- */
+  function renderQuickExp(){
+    var row=$('quickExpRow');
+    if(!quickExp.length){row.style.display='none';row.innerHTML='';return;}
+    row.style.display='flex';
+    row.innerHTML=quickExp.map(function(q,i){return '<button data-qe="'+i+'">'+esc(q.t)+' '+fmtAmt(q.amt)+'</button>';}).join('');
+  }
+  $('quickExpRow').addEventListener('click',function(e){
+    var b=e.target.closest('[data-qe]');if(!b)return;
+    var q=quickExp[+b.dataset.qe];if(!q)return;
+    var item={t:q.t,amt:q.amt,cat:q.cat||'其他',off:selOffset,link:null};
+    expenses.push(item);enterExpIdx=expenses.length-1;renderAll();
+    toast('已記錄 '+q.t+' '+fmtAmt(q.amt),{label:'復原',ms:4000,fn:function(){var ix=expenses.indexOf(item);if(ix>-1){expenses.splice(ix,1);renderAll();}}});
+  });
+  function monthSpentTotal(){var n=new Date();return expenses.reduce(function(s,x){var d=dateOf(x.off);return (d.getFullYear()===n.getFullYear()&&d.getMonth()===n.getMonth())?s+x.amt:s;},0);}
+  function budgetHTML(spent){
+    var pct=Math.min(100,Math.round(spent/budget*100));
+    return '<div class="budget-meta"><span>每月預算</span><span>'+fmtAmt(spent)+' / '+fmtAmt(budget)+(spent>budget?' · <b>已超支 '+fmtAmt(spent-budget)+'</b>':' · 尚餘 '+fmtAmt(budget-spent))+'</span></div><div class="bd-bar"><div class="bd-fill" style="width:'+pct+'%"></div></div>';
+  }
+  function renderBudgetLine(){
+    var el=$('budgetLine');
+    if(!budget){el.style.display='none';el.innerHTML='';return;}
+    el.style.display='';el.innerHTML=budgetHTML(monthSpentTotal());
+  }
+  function renderJournal(){
+    var list=journal.map(function(x,i){return {x:x,i:i};}).filter(function(o){return o.x.off===selOffset;});
+    $('journalCount').textContent=list.length?(list.length+' 則'):'';
+    $('journalList').innerHTML=list.slice().reverse().map(function(o){var x=o.x;
+      return '<div class="swipe" tabindex="0" role="group" aria-label="日記"><div class="row swipe-content"><div></div><div class="label">'+esc(x.t)+(x.time?'<small>'+esc(x.time)+'</small>':'')+'</div></div><span class="swipe-actions" inert><button class="swipe-act del" data-del-journal="'+o.i+'">刪除</button></span></div>';
+    }).join('')||emptyState('journal','本日尚無日記。');
+  }
+  $('journalList').addEventListener('click',function(e){
+    var del=e.target.closest('[data-del-journal]');
+    if(del){
+      var dj=+del.dataset.delJournal,swElJ=del.closest('.swipe');
+      if(swElJ)swElJ.classList.add('row-exit');
+      setTimeout(function(){deleteWithUndo(journal,dj,'已刪除日記');},200);
+      return;
+    }
+  });
+  function addJournal(){var v=$('journalInput').value.trim();if(!v)return;var n=new Date();journal.push({t:v,off:selOffset,time:pad2(n.getHours())+':'+pad2(n.getMinutes())});$('journalInput').value='';renderAll();toast('已記錄日記');}
+  $('journalAdd').addEventListener('click',addJournal);
+  $('journalInput').addEventListener('keydown',function(e){if(e.key==='Enter')addJournal();});
+  function renderQeCatOptions(){
+    var cats=getCats(),qc=$('qeCat'),cur=qc.value;
+    qc.innerHTML=cats.map(function(c){return '<option'+(c===cur?' selected':'')+'>'+esc(c)+'</option>';}).join('');
+  }
+  function renderQeList(){
+    $('qeList').innerHTML=quickExp.map(function(q,i){
+      return '<div class="cat-row">'+esc(q.t)+' '+fmtAmt(q.amt)+'<small style="color:var(--muted);font-weight:500;margin-left:8px">'+esc(q.cat||'其他')+'</small><button data-qedel="'+i+'">刪除</button></div>';
+    }).join('')||'<p class="set-note">未設定常用支出。</p>';
+    Array.prototype.forEach.call($('qeList').querySelectorAll('[data-qedel]'),function(b){
+      b.addEventListener('click',function(){quickExp.splice(+b.dataset.qedel,1);saveState();renderQeList();renderQuickExp();});
+    });
+  }
+  $('qeAdd').addEventListener('click',function(){
+    var t=$('qeName').value.trim(),a=parseFloat($('qeAmt').value);
+    if(!t||!(a>0)){toast('請輸入名稱及金額');return;}
+    quickExp.push({t:t,amt:a,cat:$('qeCat').value||'其他'});
+    $('qeName').value='';$('qeAmt').value='';saveState();renderQeList();renderQuickExp();toast('已加入常用支出');
+  });
+  function renderBudgetSetting(){
+    $('budgetInput').value=budget?String(budget):'';
+    $('budgetNote').textContent=budget?('現時每月預算為 '+fmtAmt(budget)+'。清空再儲存即可取消。'):'未設定預算。設定後，日頁同每月總覽會顯示本月進度。';
+  }
+  $('budgetSave').addEventListener('click',function(){
+    var v=$('budgetInput').value.trim();
+    if(!v){budget=null;saveState();renderBudgetSetting();renderBudgetLine();renderMonthly();toast('已取消每月預算');return;}
+    var a=parseFloat(v);if(!(a>0)){toast('請輸入正確金額');return;}
+    budget=a;saveState();renderBudgetSetting();renderBudgetLine();renderMonthly();toast('已設定每月預算 '+fmtAmt(a));
+  });
+
   /* ---- 設定：外觀／分類／匯出 ---- */
   var THEME_KEY='lifelog-theme', CATS_KEY='lifelog-cats';
   var DEFAULT_CATS=['餐飲','交通','購物','其他'];
@@ -975,6 +1097,7 @@
       var box=$(id),cur=(box.querySelector('.on')||{}).textContent||null;
       box.innerHTML=cats.map(function(c){return '<button'+(c===cur||(!cur&&c==='其他')?' class="on"':'')+'>'+esc(c)+'</button>';}).join('');
     });
+    renderQeCatOptions();
     var sel=$('expChips').querySelector('.on');
     if(sel)$('expCatLabel').textContent=sel.textContent;
   }
@@ -1024,14 +1147,15 @@
       try{p=JSON.parse(rd.result);}catch(e){}
       var data=p&&(p.data||(Array.isArray(p.tasks)?p:null));
       if(!data||!Array.isArray(data.tasks)||!Array.isArray(data.expenses)){toast('備份檔案格式不正確');return;}
-      if(!confirm('匯入會覆蓋現有所有待辦同支出，確定還原？'))return;
+      if(!confirm('匯入會覆蓋現有資料，確定還原？'))return;
       try{
-        localStorage.setItem(LS_KEY,JSON.stringify({tasks:data.tasks,overdue:Array.isArray(data.overdue)?data.overdue:[],expenses:data.expenses}));
+        var curBk={};try{curBk=JSON.parse(localStorage.getItem(LS_KEY)||'{}')||{};}catch(x){}
+        localStorage.setItem(LS_KEY,JSON.stringify({tasks:data.tasks,overdue:Array.isArray(data.overdue)?data.overdue:[],expenses:data.expenses,quick:Array.isArray(data.quick)?data.quick:(curBk.quick||[]),journal:Array.isArray(data.journal)?data.journal:(curBk.journal||[]),budget:(typeof data.budget==='number'&&data.budget>0)?data.budget:(curBk.budget||null)}));
         if(p.theme==='light'||p.theme==='dark'||p.theme==='system')localStorage.setItem(THEME_KEY,p.theme);
         if(Array.isArray(p.cats)&&p.cats.length)localStorage.setItem(CATS_KEY,JSON.stringify(p.cats));
       }catch(e){toast('還原失敗');return;}
       selOffset=0;stripBase=mondayOf(today);
-      loadState();applyTheme();renderCatChips();renderCatList();renderAll();
+      loadState();applyTheme();renderCatChips();renderCatList();renderQeList();renderBudgetSetting();renderAll();
       $('settingsPage').classList.remove('open');
       toast('已還原備份');
     };
@@ -1045,6 +1169,7 @@
     var list=expenses.filter(function(x){var d=dateOf(x.off);return d.getFullYear()===ovY&&d.getMonth()===ovM;});
     var total=list.reduce(function(s,x){return s+x.amt;},0);
     $('ovTotal').textContent=fmtAmt(total);
+    $('ovBudget').innerHTML=budget?budgetHTML(total):'';
     if(!list.length){$('ovMeta').textContent='';$('ovCats').innerHTML='';$('ovList').innerHTML=emptyState('exp','本月尚無支出記錄。');return;}
     var daysInMonth=new Date(ovY,ovM+1,0).getDate();
     var elapsed=(ovY===today.getFullYear()&&ovM===today.getMonth())?today.getDate():daysInMonth;
@@ -1112,7 +1237,7 @@
     toast('已帶入交易資料，請核對後記錄');
   }
 
-  applyTheme();renderCatChips();renderCatList();
+  applyTheme();renderCatChips();renderCatList();renderQeList();renderBudgetSetting();
 
   renderAll();
   quickAddFromUrl();
